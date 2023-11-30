@@ -24,7 +24,7 @@ func (p *OrdersApp) Run() {
 	conf := config.NewConfig("dev")
 	httpHand := handler.NewHttpHandler(chiRouter)
 	httpHand.InitBaseMiddlewares()
-	serv := http.NewHttpServer(&conf, httpHand.CreateHandlers())
+	serv := http.NewHttpServer(&conf, httpHand.Handler())
 
 	go func() {
 		if err := serv.Start(); err != nil {

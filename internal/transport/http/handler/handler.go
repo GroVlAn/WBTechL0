@@ -23,8 +23,8 @@ func (hh *HttpHandler) InitBaseMiddlewares() {
 	hh.router.Use(middleware.Recoverer)
 }
 
-// CreateHandlers function for create routs and return chi router
-func (hh *HttpHandler) CreateHandlers() chi.Router {
+// Handler function for create routs and return chi router
+func (hh *HttpHandler) Handler() chi.Router {
 
 	return hh.router
 }
