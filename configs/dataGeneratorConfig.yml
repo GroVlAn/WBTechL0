@@ -1,0 +1,7 @@
+dev:
+  http:
+    port: "7020"
+
+prod:
+  http:
+    port: "8020"

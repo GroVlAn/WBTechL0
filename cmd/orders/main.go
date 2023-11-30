@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"github.com/GroVlAn/WBTechL0/internal/apps"
+)
 
 func main() {
-	fmt.Println("hello")
+	app := apps.NewApplication()
+	ordersApplication := app.CreateOrdersApp()
+	ordersApplication.Run()
 }
