@@ -1,22 +1,22 @@
 version: "3.7"
 
 services:
-  producer:
-    container_name: "wb_service_order_producer"
+  orders:
+    container_name: "wb_service_order"
     build:
       context: ./
-      dockerfile: producerDockerfile
-    command: ./producer
+      dockerfile: ordersDockerfile
+    command: ./orders
     restart: always
     ports:
       - "8010:8010"
 
-  subscriber:
-    container_name: "wb_service_order_subscriber"
+  data_generator:
+    container_name: "wb_service_data_generator"
     build:
       context: ./
-      dockerfile: subscriberDockerfile
-    command: ./subscriber
+      dockerfile: dataGeneratorDockerfile
+    command: ./dataGenerator
     restart: always
     ports:
       - "8020:8020"

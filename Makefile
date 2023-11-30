@@ -2,11 +2,11 @@
 
 #Build producer application
 g-build-producer:
-	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/producer ./cmd/producer/main.go;
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/orders ./cmd/orders/main.go;
 
 #Build subscriber application
 g-build-subscriber:
-	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/subscriber ./cmd/subscriber/main.go;
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/dataGenerator ./cmd/dataGenerator/main.go;
 
 #Docker compose build
 compose-build:

@@ -1,4 +1,0 @@
-FROM scratch
-EXPOSE 8010
-WORKDIR /api/producer/
-ADD ./build/producer/ ./

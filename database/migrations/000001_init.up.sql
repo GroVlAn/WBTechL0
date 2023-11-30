@@ -16,7 +16,7 @@ CREATE TABLE product
 CREATE TABLE payment
 (
     id            serial primary key not null unique,
-    transaction   varchar(455)       not null,
+    transaction   text      not null,
     request_id    varchar(455),
     currency      varchar(100),
     provider      varchar(255)       not null,

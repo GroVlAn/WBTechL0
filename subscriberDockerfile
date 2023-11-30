@@ -1,4 +1,0 @@
-FROM scratch
-EXPOSE 8010
-WORKDIR /api/subscriber/
-ADD ./build/subscriber/ ./

@@ -1,0 +1,4 @@
+FROM scratch
+EXPOSE 8010
+WORKDIR /api/dataGenerator/
+ADD ./build/dataGenerator/ ./
