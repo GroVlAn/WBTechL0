@@ -6,7 +6,7 @@ services:
     build:
       context: ./
       dockerfile: ordersDockerfile
-    command: ./orders
+    command: ./orders --prod
     restart: always
     ports:
       - "8010:8010"

@@ -15,13 +15,29 @@ type OrdersApp struct {
 	Runner
 }
 
+const (
+	pathConfig = "configs"
+	nameConfig = "ordersConfig"
+)
+
+type Modes = map[string]string
+
+var modes Modes = Modes{
+	"--prod": "prod",
+	"--dev":  "dev",
+}
+
+var mode string
+
 func (p *OrdersApp) Run() {
-	if err := config.InitConfig("configs", "ordersConfig"); err != nil {
+	setMode()
+
+	if err := config.InitConfig(pathConfig, nameConfig); err != nil {
 		log.Fatalf("error initialisation config: %s", err.Error())
 	}
 
 	chiRouter := chi.NewRouter()
-	conf := config.NewConfig("dev")
+	conf := config.NewConfig(mode)
 	httpHand := handler.NewHttpHandler(chiRouter)
 	httpHand.InitBaseMiddlewares()
 	serv := http.NewHttpServer(&conf, httpHand.Handler())
@@ -38,6 +54,14 @@ func (p *OrdersApp) Run() {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
 	<-quit
+}
+
+func setMode() {
+	args := os.Args
+
+	if mode = modes[args[1]]; mode == "" {
+		mode = modes["--dev"]
+	}
 }
 
 type Runner interface {
