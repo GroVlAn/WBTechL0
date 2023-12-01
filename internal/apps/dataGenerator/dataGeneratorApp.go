@@ -4,10 +4,10 @@ type DataGeneratorApp struct {
 	Runner
 }
 
-func (s *DataGeneratorApp) Run() {
+func (s *DataGeneratorApp) Run(mode string) {
 
 }
 
 type Runner interface {
-	Run()
+	Run(mode string)
 }

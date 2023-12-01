@@ -29,5 +29,5 @@ type ApplicationsCreator interface {
 }
 
 type Runner interface {
-	Run()
+	Run(mode string)
 }

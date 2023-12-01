@@ -3,9 +3,10 @@ package ordersApp
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"
 	"github.com/GroVlAn/WBTechL0/internal/server/http"
+	"github.com/GroVlAn/WBTechL0/internal/tools/loggerApp"
 	"github.com/GroVlAn/WBTechL0/internal/transport/http/handler"
 	"github.com/go-chi/chi/v5"
-	"log"
+	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -20,25 +21,32 @@ const (
 	nameConfig = "ordersConfig"
 )
 
-type Modes = map[string]string
+const (
+	logFile    = "logs.txt"
+	permission = 0644
+)
 
-var modes Modes = Modes{
-	"--prod": "prod",
-	"--dev":  "dev",
-}
+func (p *OrdersApp) Run(mode string) {
+	logger := loggerApp.NewLogger(logFile, permission)
+	defer func() {
+		if err := logger.File.Close(); err != nil {
+			logrus.Fatalf("error while closing file: %s", err.Error())
+		}
+	}()
 
-var mode string
+	if err := logger.InitLogger(); err != nil {
+		logrus.Fatalf(err.Error())
+	}
 
-func (p *OrdersApp) Run() {
-	setMode()
+	log := logger.Log
 
 	if err := config.InitConfig(pathConfig, nameConfig); err != nil {
-		log.Fatalf("error initialisation config: %s", err.Error())
+		log.Fatalf("error initializing config: %s", err.Error())
 	}
 
 	chiRouter := chi.NewRouter()
 	conf := config.NewConfig(mode)
-	httpHand := handler.NewHttpHandler(chiRouter)
+	httpHand := handler.NewHttpHandler(chiRouter, log)
 	httpHand.InitBaseMiddlewares()
 	serv := http.NewHttpServer(&conf, httpHand.Handler())
 
@@ -48,7 +56,7 @@ func (p *OrdersApp) Run() {
 		}
 	}()
 
-	log.Println("Service orders is started")
+	log.Infoln("Service orders is started")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
@@ -56,14 +64,6 @@ func (p *OrdersApp) Run() {
 	<-quit
 }
 
-func setMode() {
-	args := os.Args
-
-	if mode = modes[args[1]]; mode == "" {
-		mode = modes["--dev"]
-	}
-}
-
 type Runner interface {
-	Run()
+	Run(mode string)
 }

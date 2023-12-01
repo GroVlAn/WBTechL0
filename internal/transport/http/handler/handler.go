@@ -3,15 +3,18 @@ package handler
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/sirupsen/logrus"
 )
 
 type HttpHandler struct {
 	router chi.Router
+	log    *logrus.Logger
 }
 
-func NewHttpHandler(router chi.Router) *HttpHandler {
+func NewHttpHandler(router chi.Router, log *logrus.Logger) *HttpHandler {
 	return &HttpHandler{
 		router: router,
+		log:    log,
 	}
 }
 
