@@ -1,7 +1,21 @@
 dev:
   http:
     port: "7010"
+  db:
+    postgres:
+      host: "localhost"
+      port: "5432"
+      username: "root"
+      db_name: "wb_orders"
+      sslmode: "disable"
 
 prod:
   http:
     port: "8010"
+  db:
+    postgres:
+      host: "wb_orders_db"
+      port: "5432"
+      username: "root"
+      db_name: "wb_orders"
+      sslmode: "disable"

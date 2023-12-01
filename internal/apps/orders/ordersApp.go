@@ -2,10 +2,12 @@ package ordersApp
 
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"
+	"github.com/GroVlAn/WBTechL0/internal/database/postgres"
 	"github.com/GroVlAn/WBTechL0/internal/server/http"
 	"github.com/GroVlAn/WBTechL0/internal/tools/loggerApp"
 	"github.com/GroVlAn/WBTechL0/internal/transport/http/handler"
 	"github.com/go-chi/chi/v5"
+	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
@@ -40,12 +42,22 @@ func (p *OrdersApp) Run(mode string) {
 
 	log := logger.Log
 
+	if err := config.InitEnv(); err != nil {
+		log.Fatalf("error initializing env: %s", err.Error())
+	}
+
 	if err := config.InitConfig(pathConfig, nameConfig); err != nil {
 		log.Fatalf("error initializing config: %s", err.Error())
 	}
+	conf := config.NewConfig(mode)
+
+	_, err := postgres.NewPostgresqlDB(conf.PostgresConfig)
+
+	if err != nil {
+		log.Fatalf("DB error: %s", err.Error())
+	}
 
 	chiRouter := chi.NewRouter()
-	conf := config.NewConfig(mode)
 	httpHand := handler.NewHttpHandler(chiRouter, log)
 	httpHand.InitBaseMiddlewares()
 	serv := http.NewHttpServer(&conf, httpHand.Handler())

@@ -6,7 +6,7 @@ import (
 	"net/http"
 )
 
-type HttpServer struct {
+type ServerHttp struct {
 	httpServer *http.Server
 }
 
@@ -17,24 +17,24 @@ NewHttpServer
 
 function for create and initialization http server
 */
-func NewHttpServer(conf *config.Config, handler http.Handler) *HttpServer {
-	return &HttpServer{
+func NewHttpServer(conf *config.Config, handler http.Handler) *ServerHttp {
+	return &ServerHttp{
 		httpServer: &http.Server{
-			Addr:              ":" + conf.Port,
+			Addr:              ":" + conf.HttpConfig.Port,
 			Handler:           handler,
-			MaxHeaderBytes:    conf.MaxHeaderBytes,
-			ReadHeaderTimeout: conf.ReadHeaderTimeout,
-			WriteTimeout:      conf.WriteTimeout,
+			MaxHeaderBytes:    conf.ServerConfig.MaxHeaderBytes,
+			ReadHeaderTimeout: conf.ServerConfig.ReadHeaderTimeout,
+			WriteTimeout:      conf.ServerConfig.WriteTimeout,
 		},
 	}
 }
 
 // Start method for start http server
-func (s *HttpServer) Start() error {
+func (s *ServerHttp) Start() error {
 	return s.httpServer.ListenAndServe()
 }
 
 // Shutdown method for shutdown http server
-func (s *HttpServer) Shutdown(cxt context.Context) error {
+func (s *ServerHttp) Shutdown(cxt context.Context) error {
 	return s.httpServer.Shutdown(cxt)
 }
