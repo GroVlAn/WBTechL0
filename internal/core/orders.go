@@ -1,5 +1,7 @@
 package core
 
+import "time"
+
 type Product struct {
 	Id          int    `json:"chrt_id" db:"chrt_id"`
 	TrackNumber string `json:"track_number" db:"track_number"`
@@ -40,19 +42,20 @@ type Delivery struct {
 }
 
 type Order struct {
-	Id                int    `json:"-" db:"id"`
-	OrderUid          string `json:"order_uid" db:"order_uid"`
-	TrackNumber       string `json:"track_number" db:"track_number"`
-	Entry             string `json:"entry" db:"entry"`
-	Locale            string `json:"locale" db:"locale"`
-	InternalSignature string `json:"internal_signature" db:"internal_signature"`
-	CustomerId        string `json:"customer_id" db:"customer_id"`
-	DeliveryService   string `json:"delivery_service" db:"delivery_service"`
-	Shardkey          string `json:"shardkey" id:"shardkey"`
-	SmId              int64  `json:"sm_id" db:"sm_id"`
-	OffShard          string `json:"off_shard" db:"off_shard"`
-	DeliveryId        string `json:"delivery_id" db:"delivery_id"`
-	Payment           string `json:"payment" db:"payment"`
+	Id                int       `json:"-" db:"id"`
+	OrderUid          string    `json:"order_uid" db:"order_uid"`
+	TrackNumber       string    `json:"track_number" db:"track_number"`
+	Entry             string    `json:"entry" db:"entry"`
+	Locale            string    `json:"locale" db:"locale"`
+	InternalSignature string    `json:"internal_signature" db:"internal_signature"`
+	CustomerId        string    `json:"customer_id" db:"customer_id"`
+	DeliveryService   string    `json:"delivery_service" db:"delivery_service"`
+	Shardkey          string    `json:"shardkey" id:"shardkey"`
+	SmId              int64     `json:"sm_id" db:"sm_id"`
+	OffShard          string    `json:"off_shard" db:"off_shard"`
+	DateCreated       time.Time `json:"date_created" db:"date_created"`
+	DeliveryId        string    `json:"delivery_id" db:"delivery_id"`
+	PaymentId         string    `json:"payment_id" db:"payment_id"`
 }
 
 type OrderProduct struct {

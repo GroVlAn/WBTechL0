@@ -53,8 +53,9 @@ CREATE TABLE "order"
     shardkey           varchar(255)                                                     not null,
     sm_id              int                                                              not null,
     oof_shard          varchar(255)                                                     not null,
+    date_created       timestamp                                                        not null default CURRENT_TIMESTAMP,
     delivery_id        int references delivery (id) on update cascade on delete cascade not null,
-    payment            int references payment (id) on update cascade on delete cascade  not null
+    payment_id         int references payment (id) on update cascade on delete cascade  not null
 );
 
 CREATE TABLE order_product
