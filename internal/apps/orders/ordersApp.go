@@ -5,7 +5,7 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/database/postgres"
 	"github.com/GroVlAn/WBTechL0/internal/server/http"
 	"github.com/GroVlAn/WBTechL0/internal/tools/loggerApp"
-	"github.com/GroVlAn/WBTechL0/internal/transport/http/handler"
+	"github.com/GroVlAn/WBTechL0/internal/transport/rest"
 	"github.com/go-chi/chi/v5"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
