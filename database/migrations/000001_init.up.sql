@@ -16,7 +16,7 @@ CREATE TABLE product
 CREATE TABLE payment
 (
     id            serial primary key not null unique,
-    transaction   text      not null,
+    transaction   text               not null,
     request_id    varchar(455),
     currency      varchar(100),
     provider      varchar(255)       not null,
@@ -60,6 +60,6 @@ CREATE TABLE "order"
 CREATE TABLE order_product
 (
     id         serial primary key                                              not null unique,
-    order_id   int references "order" (id) on update cascade on delete cascade   not null,
+    order_id   int references "order" (id) on update cascade on delete cascade not null,
     product_id int references product (id) on update cascade on delete cascade not null
 );
