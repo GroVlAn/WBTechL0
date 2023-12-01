@@ -6,7 +6,6 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/server/http"
 	"github.com/GroVlAn/WBTechL0/internal/tools/loggerApp"
 	"github.com/GroVlAn/WBTechL0/internal/transport/rest"
-	"github.com/go-chi/chi/v5"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
 	"os"
@@ -57,9 +56,7 @@ func (p *OrdersApp) Run(mode string) {
 		log.Fatalf("DB error: %s", err.Error())
 	}
 
-	chiRouter := chi.NewRouter()
-	httpHand := handler.NewHttpHandler(chiRouter, log)
-	httpHand.InitBaseMiddlewares()
+	httpHand := handler.NewHttpHandler(log)
 	serv := http.NewHttpServer(&conf, httpHand.Handler())
 
 	go func() {

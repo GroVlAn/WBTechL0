@@ -7,27 +7,28 @@ import (
 )
 
 type HttpHandler struct {
-	router chi.Router
-	log    *logrus.Logger
+	log *logrus.Logger
 }
 
-func NewHttpHandler(router chi.Router, log *logrus.Logger) *HttpHandler {
+func NewHttpHandler(log *logrus.Logger) *HttpHandler {
 	return &HttpHandler{
-		router: router,
-		log:    log,
+		log: log,
 	}
 }
 
 // InitBaseMiddlewares Initialization chi middlewares
-func (hh *HttpHandler) InitBaseMiddlewares() {
-	hh.router.Use(middleware.RequestID)
-	hh.router.Use(middleware.RealIP)
-	hh.router.Use(middleware.Logger)
-	hh.router.Use(middleware.Recoverer)
+func (hh *HttpHandler) initBaseMiddlewares(router *chi.Mux) {
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
 }
 
 // Handler function for create routs and return chi router
-func (hh *HttpHandler) Handler() chi.Router {
+func (hh *HttpHandler) Handler() *chi.Mux {
+	r := chi.NewRouter()
 
-	return hh.router
+	hh.initBaseMiddlewares(r)
+
+	return r
 }
