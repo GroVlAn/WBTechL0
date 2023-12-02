@@ -1,8 +1,8 @@
 package apps
 
 import (
-	dataGeneratorApp "github.com/GroVlAn/WBTechL0/internal/apps/dataGenerator"
-	ordersApp "github.com/GroVlAn/WBTechL0/internal/apps/orders"
+	dataGeneratorApp "github.com/GroVlAn/WBTechL0/internal/apps/datagenapp"
+	ordersApp "github.com/GroVlAn/WBTechL0/internal/apps/orderapp"
 )
 
 type Application struct {

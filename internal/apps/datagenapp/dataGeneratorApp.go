@@ -1,4 +1,4 @@
-package dataGeneratorApp
+package datagenapp
 
 type DataGeneratorApp struct {
 	Runner

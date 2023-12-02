@@ -1,10 +1,10 @@
-package ordersApp
+package orderapp
 
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"
 	"github.com/GroVlAn/WBTechL0/internal/database/postgres"
-	"github.com/GroVlAn/WBTechL0/internal/server/http"
-	"github.com/GroVlAn/WBTechL0/internal/tools/loggerApp"
+	"github.com/GroVlAn/WBTechL0/internal/server/servhttp"
+	"github.com/GroVlAn/WBTechL0/internal/tools/logwrap"
 	"github.com/GroVlAn/WBTechL0/internal/transport/rest"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
@@ -28,7 +28,7 @@ const (
 )
 
 func (p *OrdersApp) Run(mode string) {
-	logger := loggerApp.NewLogger(logFile, permission)
+	logger := logwrap.NewLogger(logFile, permission)
 	defer func() {
 		if err := logger.File.Close(); err != nil {
 			logrus.Fatalf("error while closing file: %s", err.Error())
@@ -56,8 +56,8 @@ func (p *OrdersApp) Run(mode string) {
 		log.Fatalf("DB error: %s", err.Error())
 	}
 
-	httpHand := handler.NewHttpHandler(log)
-	serv := http.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
+	httpHand := rest.NewHttpHandler(log)
+	serv := servhttp.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 
 	go func() {
 		if err := serv.Start(); err != nil {

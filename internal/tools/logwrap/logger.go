@@ -1,4 +1,4 @@
-package loggerApp
+package logwrap
 
 import (
 	"github.com/pkg/errors"

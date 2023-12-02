@@ -1,4 +1,4 @@
-package http
+package servhttp
 
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"

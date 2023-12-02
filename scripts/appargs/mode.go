@@ -1,4 +1,4 @@
-package appsArgs
+package appargs
 
 import "os"
 

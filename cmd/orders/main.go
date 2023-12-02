@@ -2,11 +2,11 @@ package main
 
 import (
 	"github.com/GroVlAn/WBTechL0/internal/apps"
-	"github.com/GroVlAn/WBTechL0/scripts/appsArgs"
+	"github.com/GroVlAn/WBTechL0/scripts/appargs"
 )
 
 func main() {
-	mode := appsArgs.Mode()
+	mode := appargs.Mode()
 	app := apps.NewApplication()
 	ordersApplication := app.CreateOrdersApp()
 	ordersApplication.Run(mode)
