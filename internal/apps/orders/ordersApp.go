@@ -57,7 +57,7 @@ func (p *OrdersApp) Run(mode string) {
 	}
 
 	httpHand := handler.NewHttpHandler(log)
-	serv := http.NewHttpServer(&conf, httpHand.Handler())
+	serv := http.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 
 	go func() {
 		if err := serv.Start(); err != nil {

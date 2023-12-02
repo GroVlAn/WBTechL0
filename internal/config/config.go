@@ -4,24 +4,21 @@ import (
 	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/database/postgres"
 	"github.com/joho/godotenv"
+	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 	"os"
 	"time"
 )
 
-type HttpConfig struct {
-	Port string
-}
-
 type ServerConfig struct {
+	Port              string
 	MaxHeaderBytes    int
 	ReadHeaderTimeout time.Duration
 	WriteTimeout      time.Duration
 }
 
 type Config struct {
-	HttpConfig     HttpConfig
 	ServerConfig   ServerConfig
 	PostgresConfig postgres.Config
 }
@@ -40,10 +37,8 @@ func NewConfig(mode string) Config {
 	}
 
 	return Config{
-		HttpConfig: HttpConfig{
-			Port: viper.GetString(fmt.Sprintf("%s.http.port", mode)),
-		},
 		ServerConfig: ServerConfig{
+			Port:              viper.GetString(fmt.Sprintf("%s.http.port", mode)),
 			MaxHeaderBytes:    maxHeaderBytes,
 			ReadHeaderTimeout: readHeaderTimeout,
 			WriteTimeout:      writeTimeout,
@@ -66,6 +61,14 @@ func InitConfig(path string, nameConfig string) error {
 	return viper.ReadInConfig()
 }
 
-func InitEnv() error {
-	return godotenv.Load()
+func InitEnv(filenames ...string) error {
+	if len(filenames) == 0 {
+		return godotenv.Load()
+	}
+
+	for _, filename := range filenames {
+		return godotenv.Load(filename)
+	}
+
+	return errors.New("Can't init env")
 }

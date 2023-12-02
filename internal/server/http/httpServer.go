@@ -17,14 +17,14 @@ NewHttpServer
 
 function for create and initialization http server
 */
-func NewHttpServer(conf *config.Config, handler http.Handler) *ServerHttp {
+func NewHttpServer(conf *config.ServerConfig, handler http.Handler) *ServerHttp {
 	return &ServerHttp{
 		httpServer: &http.Server{
-			Addr:              ":" + conf.HttpConfig.Port,
+			Addr:              ":" + conf.Port,
 			Handler:           handler,
-			MaxHeaderBytes:    conf.ServerConfig.MaxHeaderBytes,
-			ReadHeaderTimeout: conf.ServerConfig.ReadHeaderTimeout,
-			WriteTimeout:      conf.ServerConfig.WriteTimeout,
+			MaxHeaderBytes:    conf.MaxHeaderBytes,
+			ReadHeaderTimeout: conf.ReadHeaderTimeout,
+			WriteTimeout:      conf.WriteTimeout,
 		},
 	}
 }
