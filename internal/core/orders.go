@@ -27,7 +27,7 @@ type Payment struct {
 	Bank         string `json:"bank" db:"bank"`
 	DeliveryCost int64  `json:"delivery_cost" db:"delivery_cost"`
 	GoodsTotal   int64  `json:"goods_total" db:"goods_total"`
-	CustomFee    int64  `json:"custom_fee" db:"custom_fee" db:"custom_fee"`
+	CustomFee    int64  `json:"custom_fee" db:"custom_fee"`
 }
 
 type Delivery struct {
