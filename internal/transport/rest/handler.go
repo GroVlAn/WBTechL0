@@ -1,9 +1,14 @@
 package rest
 
 import (
+	md "github.com/GroVlAn/WBTechL0/internal/middleware"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sirupsen/logrus"
+)
+
+const (
+	basePath = "/api"
 )
 
 type HttpHandler struct {
@@ -28,7 +33,17 @@ func (hh *HttpHandler) initBaseMiddlewares(router *chi.Mux) {
 func (hh *HttpHandler) Handler() *chi.Mux {
 	r := chi.NewRouter()
 
+	hh.baseMiddleware(r)
 	hh.initBaseMiddlewares(r)
 
+	r.Mount(basePath, hh.ProductHandler())
+	r.Mount(basePath, hh.PaymentHandler())
+	r.Mount(basePath, hh.DeliveryHandler())
+	r.Mount(basePath, hh.OrderHandler())
+
 	return r
+}
+
+func (hh *HttpHandler) baseMiddleware(r *chi.Mux) {
+	r.Use(md.SkipFavicon)
 }
