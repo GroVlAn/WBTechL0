@@ -35,7 +35,7 @@ func (pr *ProductRepos) Create(prod core.Product) (int, error) {
 		"brand,"+
 		"status"+
 		") VALUES "+
-		"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id", productTable)
+		"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING chrt_id", productTable)
 	row := pr.db.QueryRow(
 		query,
 		prod.TrackNumber,
@@ -59,19 +59,20 @@ func (pr *ProductRepos) Create(prod core.Product) (int, error) {
 
 func (pr *ProductRepos) Product(id int) (core.Product, error) {
 	var product core.Product
-	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", productTable)
+	query := fmt.Sprintf("SELECT * FROM %s WHERE chrt_id=$1", productTable)
 	err := pr.db.Get(&product, query, id)
 
 	return product, errors.Wrap(err, "product not found")
 }
 
 func (pr *ProductRepos) Delete(id int) (int, error) {
-	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", productTable)
-	_, err := pr.db.Exec(query, id)
+	var delProdId int
+	query := fmt.Sprintf("DELETE FROM %s WHERE chrt_id=$1 RETURNING chrt_id", productTable)
+	row := pr.db.QueryRow(query, id)
 
-	if err != nil {
+	if err := row.Scan(&delProdId); err != nil {
 		return -1, errors.Wrap(err, "product not found")
 	}
 
-	return id, nil
+	return delProdId, nil
 }

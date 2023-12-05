@@ -15,9 +15,9 @@ type PostgresRepos struct {
 
 func NewPostgresRepos(db *sqlx.DB) *PostgresRepos {
 	return &PostgresRepos{
-		DeliveryRepository: repos.NewDeliveryRepos(db),
-		PaymentRepository:  repos.NewPaymentRepos(db),
 		ProductRepository:  repos.NewProductRepos(db),
+		PaymentRepository:  repos.NewPaymentRepos(db),
+		DeliveryRepository: repos.NewDeliveryRepos(db),
 		OrderRepository:    repos.NewOrderRepos(db),
 	}
 }

@@ -10,10 +10,10 @@ type Service struct {
 }
 
 func NewService(
-	prodRepos *prepos.ProductRepository,
-	pmtRepos *prepos.PaymentRepository,
-	dRepos *prepos.DeliveryRepository,
-	orRepos *prepos.OrderRepository,
+	prodRepos prepos.ProductRepository,
+	pmtRepos prepos.PaymentRepository,
+	dRepos prepos.DeliveryRepository,
+	orRepos prepos.OrderRepository,
 ) *Service {
 	return &Service{
 		ProductService:  NewProductServ(prodRepos),

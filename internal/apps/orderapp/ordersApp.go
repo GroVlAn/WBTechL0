@@ -3,7 +3,9 @@ package orderapp
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"
 	"github.com/GroVlAn/WBTechL0/internal/database/postgres"
+	"github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/GroVlAn/WBTechL0/internal/server/servhttp"
+	"github.com/GroVlAn/WBTechL0/internal/service"
 	"github.com/GroVlAn/WBTechL0/internal/tools/logwrap"
 	"github.com/GroVlAn/WBTechL0/internal/transport/rest"
 	_ "github.com/lib/pq"
@@ -50,13 +52,21 @@ func (p *OrdersApp) Run(mode string) {
 	}
 	conf := config.NewConfig(mode)
 
-	_, err := postgres.NewPostgresqlDB(conf.PostgresConfig)
+	db, err := postgres.NewPostgresqlDB(conf.PostgresConfig)
 
 	if err != nil {
 		log.Fatalf("DB error: %s", err.Error())
 	}
 
-	httpHand := rest.NewHttpHandler(log)
+	repo := postgresrepos.NewPostgresRepos(db)
+	ser := service.NewService(
+		repo.ProductRepository,
+		repo.PaymentRepository,
+		repo.DeliveryRepository,
+		repo.OrderRepository,
+	)
+
+	httpHand := rest.NewHttpHandler(log, ser)
 	serv := servhttp.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 
 	go func() {

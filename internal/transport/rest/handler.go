@@ -2,6 +2,7 @@ package rest
 
 import (
 	md "github.com/GroVlAn/WBTechL0/internal/middleware"
+	"github.com/GroVlAn/WBTechL0/internal/service"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/sirupsen/logrus"
@@ -12,12 +13,17 @@ const (
 )
 
 type HttpHandler struct {
-	log *logrus.Logger
+	log      *logrus.Logger
+	prodServ service.ProductService
 }
 
-func NewHttpHandler(log *logrus.Logger) *HttpHandler {
+func NewHttpHandler(
+	log *logrus.Logger,
+	prodServ service.ProductService,
+) *HttpHandler {
 	return &HttpHandler{
-		log: log,
+		log:      log,
+		prodServ: prodServ,
 	}
 }
 
@@ -37,9 +43,6 @@ func (hh *HttpHandler) Handler() *chi.Mux {
 	hh.initBaseMiddlewares(r)
 
 	r.Mount(basePath, hh.ProductHandler())
-	r.Mount(basePath, hh.PaymentHandler())
-	r.Mount(basePath, hh.DeliveryHandler())
-	r.Mount(basePath, hh.OrderHandler())
 
 	return r
 }

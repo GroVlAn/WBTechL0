@@ -1,6 +1,6 @@
 CREATE TABLE product
 (
-    id           serial primary key not null unique,
+    chrt_id      serial primary key not null unique,
     track_number varchar(255)       not null unique,
     price        int                not null,
     rid          varchar(455)       not null,
@@ -60,7 +60,7 @@ CREATE TABLE "order"
 
 CREATE TABLE order_product
 (
-    id         serial primary key                                              not null unique,
-    order_id   int references "order" (id) on update cascade on delete cascade not null,
-    product_id int references product (id) on update cascade on delete cascade not null
+    id         serial primary key                                                   not null unique,
+    order_id   int references "order" (id) on update cascade on delete cascade      not null,
+    product_id int references product (chrt_id) on update cascade on delete cascade not null
 );
