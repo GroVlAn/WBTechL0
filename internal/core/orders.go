@@ -31,7 +31,7 @@ type Payment struct {
 }
 
 type Delivery struct {
-	Id      int    `json:"_" db:"id"`
+	Id      int    `json:"-" db:"id"`
 	Name    string `json:"name" db:"name"`
 	Phone   string `json:"phone" db:"phone"`
 	Zip     string `json:"zip" db:"zip"`

@@ -54,12 +54,7 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int, error) {
 func (pr *ProductServ) Product(id int) (ProductRepr, error) {
 	prod, err := pr.repos.Product(id)
 
-	if err != nil {
-		return ProductRepr{}, err
-	}
-
-	fmt.Println(prod)
-	return ProductRepr(prod), nil
+	return ProductRepr(prod), err
 }
 
 func (pr *ProductServ) DeleteProduct(id int) (int, error) {

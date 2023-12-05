@@ -2,12 +2,14 @@ package service
 
 import (
 	"errors"
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/asaskevich/govalidator"
 	"github.com/sirupsen/logrus"
 )
 
 type DeliveryRepr struct {
+	Id      int    `json:"-" valid:"-"`
 	Name    string `json:"name" valid:"type(string), required"`
 	Phone   string `json:"phone" valid:"type(string), required"`
 	Zip     string `json:"zip" valid:"type(string), required"`
@@ -35,16 +37,24 @@ func (ds *DeliveryServ) CreateDelivery(dRepr DeliveryRepr) (int, error) {
 	}
 
 	if !result {
-		return -1, errors.New("invalid data")
+		return -1, errors.New("no valid data")
 	}
 
-	return -1, nil
+	d := core.Delivery(dRepr)
+
+	id, errd := ds.repos.Create(d)
+
+	return id, errd
 }
 
 func (ds *DeliveryServ) Delivery(id int) (DeliveryRepr, error) {
-	return DeliveryRepr{}, nil
+	d, err := ds.repos.Delivery(id)
+
+	return DeliveryRepr(d), err
 }
 
 func (ds *DeliveryServ) DeleteDelivery(id int) (int, error) {
-	return -1, nil
+	delDId, err := ds.repos.Delete(id)
+
+	return delDId, err
 }

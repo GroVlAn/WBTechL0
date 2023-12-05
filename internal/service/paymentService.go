@@ -2,12 +2,14 @@ package service
 
 import (
 	"errors"
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/asaskevich/govalidator"
 	"github.com/sirupsen/logrus"
 )
 
 type PaymentRepr struct {
+	Id           int    `json:"-" db:"id"`
 	Transaction  string `json:"transaction" valid:"type(string), required"`
 	RequestId    string `json:"request_id" valid:"type(string)"`
 	Currency     string `json:"currency" valid:"type(string), required"`
@@ -41,13 +43,21 @@ func (ps *PaymentServ) CreatePayment(pmtRepr PaymentRepr) (int, error) {
 		return -1, errors.New("invalid data")
 	}
 
-	return -1, nil
+	pmt := core.Payment(pmtRepr)
+
+	id, errPmt := ps.repos.Create(pmt)
+
+	return id, errPmt
 }
 
 func (ps *PaymentServ) Payment(id int) (PaymentRepr, error) {
-	return PaymentRepr{}, nil
+	pmt, err := ps.repos.Payment(id)
+
+	return PaymentRepr(pmt), err
 }
 
 func (ps *PaymentServ) DeletePayment(id int) (int, error) {
-	return -1, nil
+	delPmtId, err := ps.repos.Delete(id)
+
+	return delPmtId, err
 }
