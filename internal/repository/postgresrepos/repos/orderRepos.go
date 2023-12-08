@@ -15,12 +15,14 @@ const (
 )
 
 type OrderRepos struct {
-	db *sqlx.DB
+	log *logrus.Logger
+	db  *sqlx.DB
 }
 
-func NewOrderRepos(db *sqlx.DB) *OrderRepos {
+func NewOrderRepos(log *logrus.Logger, db *sqlx.DB) *OrderRepos {
 	return &OrderRepos{
-		db: db,
+		log: log,
+		db:  db,
 	}
 }
 
@@ -28,6 +30,7 @@ func (or *OrderRepos) Create(ord core.Order, d core.Delivery, pmt core.Payment) 
 	tx, errTx := or.db.Begin()
 
 	if errTx != nil {
+		or.log.Errorf("error create order: can not open transaction: %s", errTx.Error())
 		return "", errTx
 	}
 
@@ -47,11 +50,13 @@ func (or *OrderRepos) Create(ord core.Order, d core.Delivery, pmt core.Payment) 
 
 	if errD := rowD.Scan(&dId); errD != nil {
 		errTx := tx.Rollback()
+
 		if errTx != nil {
-			logrus.Errorf("Cann not roalback delivery: %s", errTx.Error())
+			or.log.Errorf("error create order: can not roalback create delivery: %s", errTx.Error())
 			return "", errD
 		}
 
+		or.log.Errorf("error create order: can not create delivery: %s", errD.Error())
 		return "", core.NewCantCreateErr(http.StatusBadRequest, "order - delivery")
 	}
 
@@ -85,9 +90,11 @@ func (or *OrderRepos) Create(ord core.Order, d core.Delivery, pmt core.Payment) 
 	if errPmt := rowPmt.Scan(&tran); errPmt != nil {
 		errTx := tx.Rollback()
 		if errTx != nil {
-			logrus.Errorf("Cann not roalback delivery: %s", errTx.Error())
+			or.log.Errorf("error create order: can not roalback create payment: %s", errTx.Error())
 			return "", errTx
 		}
+
+		or.log.Errorf("errr create order: can not create payment: %s", errPmt.Error())
 		return "", core.NewCantCreateErr(http.StatusBadRequest, "order - payment")
 	}
 
@@ -118,29 +125,39 @@ func (or *OrderRepos) Create(ord core.Order, d core.Delivery, pmt core.Payment) 
 	if errOrd := rowOrd.Scan(&orderUid); errOrd != nil {
 		errTx := tx.Rollback()
 		if errTx != nil {
-			logrus.Errorf("Cann not roalback delivery: %s", errTx.Error())
+			or.log.Errorf("error create order: can not roalback create order: %s", errTx.Error())
 			return "", errTx
 		}
+
+		or.log.Errorf("error create order: can not create order: %s", errOrd.Error())
 		return "", core.NewCantCreateErr(http.StatusBadRequest, "order")
 	}
 
-	return orderUid, tx.Commit()
+	if errCom := tx.Commit(); errCom != nil {
+		or.log.Errorf("error create order: can not commit transaction: %s", errCom.Error())
+		return "", core.NewCantCreateErr(http.StatusBadRequest, "order - order")
+	}
+
+	or.log.Infof("create new order with id: %s", orderUid)
+	return orderUid, nil
 }
 
 func (or *OrderRepos) Order(orderUid string) (core.Order, error) {
 	var order core.Order
 	query := fmt.Sprintf("SELECT * FROM \"%s\" WHERE order_uid=$1", orderTable)
-	fmt.Println(orderUid)
 	err := or.db.Get(&order, query, orderUid)
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			or.log.Errorf("error get order: not found: %s", err.Error())
 			return core.Order{}, core.NewNotFundErr(http.StatusNotFound, "order")
 		}
 
+		or.log.Errorf("error get order: can not find order: %s", err.Error())
 		return core.Order{}, core.NewCantCreateErr(http.StatusBadRequest, "order")
 	}
 
+	or.log.Infof("find payment by order_uid: %s", orderUid)
 	return order, nil
 }
 
@@ -150,11 +167,14 @@ func (or *OrderRepos) Delete(orderUid string) (string, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			or.log.Errorf("error delete order: not found: %s", err.Error())
 			return "", core.NewNotFundErr(http.StatusNotFound, "order")
 		}
 
+		or.log.Errorf("error delete order: can not find order: %s", err.Error())
 		return "", core.NewCantCreateErr(http.StatusBadRequest, "order")
 	}
 
+	or.log.Infof("delete payment with order_uid: %s", orderUid)
 	return orderUid, nil
 }

@@ -2,6 +2,7 @@ package service
 
 import (
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
+	"github.com/sirupsen/logrus"
 )
 
 type DeliveryRepr struct {
@@ -16,23 +17,27 @@ type DeliveryRepr struct {
 }
 
 type DeliveryServ struct {
+	log   *logrus.Logger
 	repos prepos.DeliveryRepository
 }
 
-func NewDeliveryServ(repos prepos.DeliveryRepository) *DeliveryServ {
+func NewDeliveryServ(log *logrus.Logger, repos prepos.DeliveryRepository) *DeliveryServ {
 	return &DeliveryServ{
+		log:   log,
 		repos: repos,
 	}
 }
 
 func (ds *DeliveryServ) Delivery(id int64) (DeliveryRepr, error) {
 	d, err := ds.repos.Delivery(id)
+	ds.log.Infof("service try to find delivery by id: %d", id)
 
 	return DeliveryRepr(d), err
 }
 
 func (ds *DeliveryServ) DeleteDelivery(id int) (int, error) {
 	delDId, err := ds.repos.Delete(id)
+	ds.log.Infof("service try to delete delivery by id: %d", id)
 
 	return delDId, err
 }

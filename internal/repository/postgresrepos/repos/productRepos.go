@@ -6,6 +6,7 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -14,12 +15,14 @@ const (
 )
 
 type ProductRepos struct {
-	db *sqlx.DB
+	log *logrus.Logger
+	db  *sqlx.DB
 }
 
-func NewProductRepos(db *sqlx.DB) *ProductRepos {
+func NewProductRepos(log *logrus.Logger, db *sqlx.DB) *ProductRepos {
 	return &ProductRepos{
-		db: db,
+		log: log,
+		db:  db,
 	}
 }
 
@@ -53,9 +56,11 @@ func (pr *ProductRepos) Create(prod core.Product) (int, error) {
 	)
 
 	if err := row.Scan(&id); err != nil {
+		pr.log.Errorf("error can not create product: %s", err.Error())
 		return -1, core.NewCantCreateErr(http.StatusBadRequest, "product")
 	}
 
+	pr.log.Infof("create product with id: %d", id)
 	return id, nil
 }
 
@@ -64,11 +69,19 @@ func (pr *ProductRepos) Product(id int) (core.Product, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE chrt_id=$1", productTable)
 	err := pr.db.Get(&product, query, id)
 
-	if errors.Is(err, sql.ErrNoRows) {
-		return core.Product{}, core.NewNotFundErr(http.StatusNotFound, "product")
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error get product: not found: %s", err.Error())
+
+			return core.Product{}, core.NewNotFundErr(http.StatusNotFound, "product")
+		}
+
+		pr.log.Errorf("error get product: can not find product: %s", err.Error())
+		return core.Product{}, core.NewCantCreateErr(http.StatusBadRequest, "product")
 	}
 
-	return product, core.NewCantCreateErr(http.StatusBadRequest, "product")
+	pr.log.Infof("find product by id: %d", id)
+	return product, nil
 }
 
 func (pr *ProductRepos) FindByTrackNumber(trNumb string) ([]core.Product, error) {
@@ -78,12 +91,16 @@ func (pr *ProductRepos) FindByTrackNumber(trNumb string) ([]core.Product, error)
 	err := pr.db.Select(&prods, query, trNumb)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error find all products: not found: %s", err.Error())
+
 			return nil, core.NewNotFundErr(http.StatusNotFound, "products")
 		}
 
+		pr.log.Errorf("error find all product: can not find product: %s", err.Error())
 		return nil, core.NewCantCreateErr(http.StatusBadRequest, "products")
 	}
 
+	pr.log.Infof("fidn product by track number: %s", trNumb)
 	return prods, nil
 }
 
@@ -92,11 +109,14 @@ func (pr *ProductRepos) Delete(id int) (int, error) {
 	_, err := pr.db.Exec(query, id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error delete product: not found: %s", err.Error())
 			return -1, core.NewNotFundErr(http.StatusNotFound, "product")
 		}
 
+		pr.log.Errorf("error delete product: can not find product: %s", err.Error())
 		return -1, core.NewNotFundErr(http.StatusBadRequest, "product")
 	}
 
+	pr.log.Infof("delete product by id: %d", id)
 	return id, nil
 }

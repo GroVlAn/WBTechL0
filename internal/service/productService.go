@@ -37,11 +37,13 @@ type ProductRepr struct {
 }
 
 type ProductServ struct {
+	log   *logrus.Logger
 	repos prepos.ProductRepository
 }
 
-func NewProductServ(repos prepos.ProductRepository) *ProductServ {
+func NewProductServ(log *logrus.Logger, repos prepos.ProductRepository) *ProductServ {
 	return &ProductServ{
+		log:   log,
 		repos: repos,
 	}
 }
@@ -50,16 +52,19 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int, error) {
 	result, err := govalidator.ValidateStruct(prodRpr)
 
 	if err != nil {
-		logrus.Errorln(err.Error())
+		pr.log.Errorf("service product err: %s", err.Error())
 	}
 
 	if !result {
+		pr.log.Error("service product err: invalid data")
 		return -1, core.NewInvalidDataErr(http.StatusBadRequest, "product", ExampleProdReq)
 	}
 
 	prod := core.Product(prodRpr)
 	fmt.Println(prod)
 	id, err := pr.repos.Create(prod)
+
+	pr.log.Info("service product try create")
 
 	return id, err
 }
@@ -69,21 +74,32 @@ func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
 
 	prods, err := pr.repos.FindByTrackNumber(trNum)
 
+	if err != nil {
+		pr.log.Errorf("service product err: %s", err.Error())
+		return nil, err
+	}
+
 	for _, prod := range prods {
 		prodsReps = append(prodsReps, ProductRepr(prod))
 	}
 
-	return prodsReps, err
+	pr.log.Info("service product find all")
+
+	return prodsReps, nil
 }
 
 func (pr *ProductServ) Product(id int) (ProductRepr, error) {
 	prod, err := pr.repos.Product(id)
+
+	pr.log.Infof("service product find by id: %d", id)
 
 	return ProductRepr(prod), err
 }
 
 func (pr *ProductServ) DeleteProduct(id int) (int, error) {
 	delProdId, err := pr.repos.Delete(id)
+
+	pr.log.Infof("service product delete by id: %d", id)
 
 	return delProdId, err
 }

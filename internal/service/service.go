@@ -1,6 +1,9 @@
 package service
 
-import prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
+import (
+	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
+	"github.com/sirupsen/logrus"
+)
 
 type Service struct {
 	ProductService
@@ -10,16 +13,17 @@ type Service struct {
 }
 
 func NewService(
+	log *logrus.Logger,
 	prodRepos prepos.ProductRepository,
 	pmtRepos prepos.PaymentRepository,
 	dRepos prepos.DeliveryRepository,
 	ordRepos prepos.OrderRepository,
 ) *Service {
 	return &Service{
-		ProductService:  NewProductServ(prodRepos),
-		PaymentService:  NewPaymentServ(pmtRepos),
-		DeliveryService: NewDeliveryServ(dRepos),
-		OrderService:    NewOrderServ(ordRepos, dRepos, pmtRepos, prodRepos),
+		ProductService:  NewProductServ(log, prodRepos),
+		PaymentService:  NewPaymentServ(log, pmtRepos),
+		DeliveryService: NewDeliveryServ(log, dRepos),
+		OrderService:    NewOrderServ(log, ordRepos, dRepos, pmtRepos, prodRepos),
 	}
 }
 

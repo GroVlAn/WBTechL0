@@ -4,21 +4,23 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos/repos"
 	"github.com/jmoiron/sqlx"
+	"github.com/sirupsen/logrus"
 )
 
 type PostgresRepos struct {
+	log *logrus.Logger
 	DeliveryRepository
 	PaymentRepository
 	ProductRepository
 	OrderRepository
 }
 
-func NewPostgresRepos(db *sqlx.DB) *PostgresRepos {
+func NewPostgresRepos(log *logrus.Logger, db *sqlx.DB) *PostgresRepos {
 	return &PostgresRepos{
-		ProductRepository:  repos.NewProductRepos(db),
-		PaymentRepository:  repos.NewPaymentRepos(db),
-		DeliveryRepository: repos.NewDeliveryRepos(db),
-		OrderRepository:    repos.NewOrderRepos(db),
+		ProductRepository:  repos.NewProductRepos(log, db),
+		PaymentRepository:  repos.NewPaymentRepos(log, db),
+		DeliveryRepository: repos.NewDeliveryRepos(log, db),
+		OrderRepository:    repos.NewOrderRepos(log, db),
 	}
 }
 

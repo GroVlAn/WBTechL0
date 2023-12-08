@@ -6,6 +6,7 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -14,12 +15,14 @@ const (
 )
 
 type PaymentRepos struct {
-	db *sqlx.DB
+	log *logrus.Logger
+	db  *sqlx.DB
 }
 
-func NewPaymentRepos(db *sqlx.DB) *PaymentRepos {
+func NewPaymentRepos(log *logrus.Logger, db *sqlx.DB) *PaymentRepos {
 	return &PaymentRepos{
-		db: db,
+		log: log,
+		db:  db,
 	}
 }
 
@@ -30,12 +33,15 @@ func (pr *PaymentRepos) Payment(tran string) (core.Payment, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error get payment: not found: %s", err.Error())
 			return core.Payment{}, core.NewNotFundErr(http.StatusNotFound, "payment")
 		}
 
+		pr.log.Errorf("error get payment: can not find payment: %s", err.Error())
 		return core.Payment{}, core.NewCantCreateErr(http.StatusBadRequest, "payment")
 	}
 
+	pr.log.Infof("find payment by transaction: %s", tran)
 	return payment, nil
 }
 
@@ -45,11 +51,15 @@ func (pr *PaymentRepos) Delete(tran string) (string, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error delete payment: not found: %s", err.Error())
+
 			return "", core.NewNotFundErr(http.StatusNotFound, "payment")
 		}
 
+		pr.log.Errorf("error delete payment: can not delete payment: %s", err.Error())
 		return "", core.NewCantCreateErr(http.StatusBadRequest, "payment")
 	}
 
+	pr.log.Infof("delete payment with transaction: %s", tran)
 	return tran, nil
 }

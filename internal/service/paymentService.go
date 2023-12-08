@@ -2,6 +2,7 @@ package service
 
 import (
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
+	"github.com/sirupsen/logrus"
 )
 
 type PaymentRepr struct {
@@ -19,11 +20,13 @@ type PaymentRepr struct {
 }
 
 type PaymentServ struct {
+	log   *logrus.Logger
 	repos prepos.PaymentRepository
 }
 
-func NewPaymentServ(repos prepos.PaymentRepository) *PaymentServ {
+func NewPaymentServ(log *logrus.Logger, repos prepos.PaymentRepository) *PaymentServ {
 	return &PaymentServ{
+		log:   log,
 		repos: repos,
 	}
 }
@@ -31,11 +34,15 @@ func NewPaymentServ(repos prepos.PaymentRepository) *PaymentServ {
 func (ps *PaymentServ) Payment(tran string) (PaymentRepr, error) {
 	pmt, err := ps.repos.Payment(tran)
 
+	ps.log.Infof("service payment try to find by transactoion: %s", tran)
+
 	return PaymentRepr(pmt), err
 }
 
 func (ps *PaymentServ) DeletePayment(tran string) (string, error) {
 	delPmtId, err := ps.repos.Delete(tran)
+
+	ps.log.Infof("service payment try to delete by transactoion: %s", tran)
 
 	return delPmtId, err
 }

@@ -6,6 +6,7 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -14,12 +15,14 @@ const (
 )
 
 type DeliveryRepos struct {
-	db *sqlx.DB
+	log *logrus.Logger
+	db  *sqlx.DB
 }
 
-func NewDeliveryRepos(db *sqlx.DB) *DeliveryRepos {
+func NewDeliveryRepos(log *logrus.Logger, db *sqlx.DB) *DeliveryRepos {
 	return &DeliveryRepos{
-		db: db,
+		log: log,
+		db:  db,
 	}
 }
 
@@ -30,11 +33,15 @@ func (dr *DeliveryRepos) Delivery(id int64) (core.Delivery, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			dr.log.Errorf("error get delivery: not found: %s", err.Error())
 			return core.Delivery{}, core.NewNotFundErr(http.StatusNotFound, "delivery")
 		}
+
+		dr.log.Errorf("error can not create delivery: %s", err.Error())
 		return core.Delivery{}, core.NewCantCreateErr(http.StatusBadRequest, "delivery")
 	}
 
+	dr.log.Infof("find delivery by id: %d", id)
 	return delivery, nil
 }
 
@@ -44,11 +51,14 @@ func (dr *DeliveryRepos) Delete(id int) (int, error) {
 
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			dr.log.Errorf("error delete delivery: not foud: %s", err.Error())
 			return -1, core.NewNotFundErr(http.StatusNotFound, "delivery")
 		}
 
+		dr.log.Errorf("error can not delete delivery: %s", err.Error())
 		return -1, core.NewCantCreateErr(http.StatusBadRequest, "delivery")
 	}
 
+	dr.log.Infof("delete delivery with id: %d", id)
 	return id, nil
 }

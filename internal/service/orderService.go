@@ -78,6 +78,7 @@ type OrderReq struct {
 }
 
 type OrderServ struct {
+	log      *logrus.Logger
 	ordRepo  prepos.OrderRepository
 	dRepos   prepos.DeliveryRepository
 	pmtRepo  prepos.PaymentRepository
@@ -85,12 +86,14 @@ type OrderServ struct {
 }
 
 func NewOrderServ(
+	log *logrus.Logger,
 	repos prepos.OrderRepository,
 	dRepos prepos.DeliveryRepository,
 	pmtRepo prepos.PaymentRepository,
 	prodRepo prepos.ProductRepository,
 ) *OrderServ {
 	return &OrderServ{
+		log:      log,
 		ordRepo:  repos,
 		dRepos:   dRepos,
 		pmtRepo:  pmtRepo,
@@ -102,11 +105,12 @@ func (ors *OrderServ) CreateOrder(ordReq OrderReq) (string, error) {
 	result, err := govalidator.ValidateStruct(ordReq)
 
 	if err != nil {
-		logrus.Errorln(err.Error())
+		ors.log.Errorln(err.Error())
 		return "", err
 	}
 
 	if !result {
+		ors.log.Errorln("order create: invalid data")
 		return "", core.NewInvalidDataErr(http.StatusBadRequest, "order", ExampleOrderReq)
 	}
 
@@ -132,35 +136,37 @@ func (ors *OrderServ) CreateOrder(ordReq OrderReq) (string, error) {
 	}
 	ordUid, errOrd := ors.ordRepo.Create(ord, d, pmt)
 
-	if errOrd != nil {
-		return "", errOrd
-	}
+	ors.log.Info("service try to create new order")
 
-	return ordUid, nil
+	return ordUid, errOrd
 }
 
 func (ors *OrderServ) Order(ordUid string) (OrderRepr, error) {
 	ord, errOrd := ors.ordRepo.Order(ordUid)
 
 	if errOrd != nil {
+		ors.log.Errorf("service order: find order error:: %s", errOrd.Error())
 		return OrderRepr{}, errOrd
 	}
 
 	d, errD := ors.dRepos.Delivery(ord.DeliveryId)
 
 	if errD != nil {
+		ors.log.Errorf("service order: find delivery error: %s", errD.Error())
 		return OrderRepr{}, errD
 	}
 
 	pmt, errPmt := ors.pmtRepo.Payment(ord.OrderUid)
 
 	if errPmt != nil {
+		ors.log.Errorf("service order: find payment error: %s", errPmt.Error())
 		return OrderRepr{}, errPmt
 	}
 
 	prods, errProds := ors.prodRepo.FindByTrackNumber(ord.TrackNumber)
 
 	if errProds != nil {
+		ors.log.Errorf("service order: find products error: %s", errProds.Error())
 		return OrderRepr{}, errProds
 	}
 
@@ -187,11 +193,15 @@ func (ors *OrderServ) Order(ordUid string) (OrderRepr, error) {
 		DateCreated:       ord.DateCreated.Format(dateCreatedFormat),
 	}
 
+	ors.log.Info("service order: return order")
+
 	return ordRepr, nil
 }
 
 func (ors *OrderServ) DeleteOrder(ordUid string) (string, error) {
 	delOrdUid, err := ors.ordRepo.Delete(ordUid)
+
+	ors.log.Infof("service order try delete order by order_uid: %s", ordUid)
 
 	return delOrdUid, err
 }
