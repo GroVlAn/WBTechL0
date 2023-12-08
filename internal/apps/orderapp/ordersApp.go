@@ -58,8 +58,9 @@ func (p *OrdersApp) Run(mode string) {
 		log.Fatalf("DB error: %s", err.Error())
 	}
 
-	repo := postgresrepos.NewPostgresRepos(db)
+	repo := postgresrepos.NewPostgresRepos(log, db)
 	ser := service.NewService(
+		log,
 		repo.ProductRepository,
 		repo.PaymentRepository,
 		repo.DeliveryRepository,
