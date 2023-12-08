@@ -1,15 +1,11 @@
 package service
 
 import (
-	"errors"
-	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
-	"github.com/asaskevich/govalidator"
-	"github.com/sirupsen/logrus"
 )
 
 type DeliveryRepr struct {
-	Id      int    `json:"-" valid:"-"`
+	Id      int64  `json:"-" valid:"-"`
 	Name    string `json:"name" valid:"type(string), required"`
 	Phone   string `json:"phone" valid:"type(string), required"`
 	Zip     string `json:"zip" valid:"type(string), required"`
@@ -29,25 +25,7 @@ func NewDeliveryServ(repos prepos.DeliveryRepository) *DeliveryServ {
 	}
 }
 
-func (ds *DeliveryServ) CreateDelivery(dRepr DeliveryRepr) (int, error) {
-	result, err := govalidator.ValidateStruct(dRepr)
-
-	if err != nil {
-		logrus.Errorln(err.Error())
-	}
-
-	if !result {
-		return -1, errors.New("no valid data")
-	}
-
-	d := core.Delivery(dRepr)
-
-	id, errd := ds.repos.Create(d)
-
-	return id, errd
-}
-
-func (ds *DeliveryServ) Delivery(id int) (DeliveryRepr, error) {
+func (ds *DeliveryServ) Delivery(id int64) (DeliveryRepr, error) {
 	d, err := ds.repos.Delivery(id)
 
 	return DeliveryRepr(d), err

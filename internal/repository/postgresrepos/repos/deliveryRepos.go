@@ -1,10 +1,12 @@
 package repos
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"net/http"
 )
 
 const (
@@ -21,34 +23,19 @@ func NewDeliveryRepos(db *sqlx.DB) *DeliveryRepos {
 	}
 }
 
-func (dr *DeliveryRepos) Create(d core.Delivery) (int, error) {
-	var id int
-	query := fmt.Sprintf("INSERT INTO %s (name, phone, zip, city, address, region, email)"+
-		"VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id", deliveryTable)
-	row := dr.db.QueryRow(
-		query,
-		d.Name,
-		d.Phone,
-		d.Zip,
-		d.City,
-		d.Address,
-		d.Region,
-		d.Email,
-	)
-
-	if err := row.Scan(&id); err != nil {
-		return -1, errors.Wrap(err, "error can not create delivery")
-	}
-
-	return id, nil
-}
-
-func (dr *DeliveryRepos) Delivery(id int) (core.Delivery, error) {
+func (dr *DeliveryRepos) Delivery(id int64) (core.Delivery, error) {
 	var delivery core.Delivery
 	query := fmt.Sprintf("SELECT * FROM %s WHERE id=$1", deliveryTable)
 	err := dr.db.Get(&delivery, query, id)
 
-	return delivery, errors.Wrap(err, "delivery not found")
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return core.Delivery{}, core.NewNotFundErr(http.StatusNotFound, "delivery")
+		}
+		return core.Delivery{}, core.NewCantCreateErr(http.StatusBadRequest, "delivery")
+	}
+
+	return delivery, nil
 }
 
 func (dr *DeliveryRepos) Delete(id int) (int, error) {
@@ -56,7 +43,11 @@ func (dr *DeliveryRepos) Delete(id int) (int, error) {
 	_, err := dr.db.Exec(query, id)
 
 	if err != nil {
-		return -1, errors.Wrap(err, "delivery not found")
+		if errors.Is(err, sql.ErrNoRows) {
+			return -1, core.NewNotFundErr(http.StatusNotFound, "delivery")
+		}
+
+		return -1, core.NewCantCreateErr(http.StatusBadRequest, "delivery")
 	}
 
 	return id, nil

@@ -1,46 +1,63 @@
 package rest
 
 import (
-	"github.com/GroVlAn/WBTechL0/internal/tools/writeresp"
+	response "github.com/GroVlAn/WBTechL0/internal/tools/resp"
 	"github.com/go-chi/chi/v5"
 	"net/http"
+	"strconv"
 )
 
 func (hh *HttpHandler) DeliveryHandler() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Route("/delivery", func(r chi.Router) {
+	router.Route("/", func(r chi.Router) {
 		r.Get("/{deliveryID}", hh.Delivery)
-		r.Post("/", hh.CreateDelivery)
 		r.Delete("/{deliveryID}", hh.DeleteDelivery)
 	})
 
 	return router
 }
 
-func (hh *HttpHandler) CreateDelivery(w http.ResponseWriter, req *http.Request) {
-	writeresp.Write(
-		hh.log,
-		[]byte("Create delivery"),
-		"error can not write delivery response",
-		w.Write,
-	)
-}
-
 func (hh *HttpHandler) Delivery(w http.ResponseWriter, req *http.Request) {
-	writeresp.Write(
-		hh.log,
-		[]byte("Delivery"),
-		"error can not write delivery response",
-		w.Write,
-	)
+	dId := chi.URLParam(req, "deliveryID")
+	id, err := strconv.Atoi(dId)
+
+	if err != nil {
+		response.Resp(w, hh.log, nil, "id must be integer", http.StatusBadRequest)
+		return
+	}
+
+	dRepr, errD := hh.dServ.Delivery(int64(id))
+
+	if errD != nil {
+		response.ErrResponse(w, hh.log, errD)
+		return
+	}
+
+	response.Resp(w, hh.log, dRepr, nil, http.StatusOK)
 }
 
 func (hh *HttpHandler) DeleteDelivery(w http.ResponseWriter, req *http.Request) {
-	writeresp.Write(
-		hh.log,
-		[]byte("Delivery"),
-		"error can not write delivery response",
-		w.Write,
-	)
+	dId := chi.URLParam(req, "deliveryID")
+	id, err := strconv.Atoi(dId)
+
+	if err != nil {
+		response.Resp(w, hh.log, nil, "id must be integer", http.StatusBadRequest)
+		return
+	}
+
+	delDId, errDelD := hh.dServ.DeleteDelivery(id)
+
+	if errDelD != nil {
+		response.ErrResponse(w, hh.log, errDelD)
+		return
+	}
+
+	delDResp := struct {
+		Id int `json:"id"`
+	}{
+		Id: delDId,
+	}
+
+	response.Resp(w, hh.log, delDResp, nil, http.StatusOK)
 }

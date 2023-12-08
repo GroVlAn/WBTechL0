@@ -15,15 +15,24 @@ const (
 type HttpHandler struct {
 	log      *logrus.Logger
 	prodServ service.ProductService
+	dServ    service.DeliveryService
+	pmtServ  service.PaymentService
+	orServ   service.OrderService
 }
 
 func NewHttpHandler(
 	log *logrus.Logger,
 	prodServ service.ProductService,
+	dServ service.DeliveryService,
+	pmtServ service.PaymentService,
+	orServ service.OrderService,
 ) *HttpHandler {
 	return &HttpHandler{
 		log:      log,
 		prodServ: prodServ,
+		dServ:    dServ,
+		pmtServ:  pmtServ,
+		orServ:   orServ,
 	}
 }
 
@@ -42,7 +51,10 @@ func (hh *HttpHandler) Handler() *chi.Mux {
 	hh.baseMiddleware(r)
 	hh.initBaseMiddlewares(r)
 
-	r.Mount(basePath, hh.ProductHandler())
+	r.Mount(basePath+"/product", hh.ProductHandler())
+	r.Mount(basePath+"/delivery", hh.DeliveryHandler())
+	r.Mount(basePath+"/payment", hh.PaymentHandler())
+	r.Mount(basePath+"/order", hh.OrderHandler())
 
 	return r
 }

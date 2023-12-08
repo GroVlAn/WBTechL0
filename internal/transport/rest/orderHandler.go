@@ -1,7 +1,9 @@
 package rest
 
 import (
-	"github.com/GroVlAn/WBTechL0/internal/tools/writeresp"
+	"encoding/json"
+	"github.com/GroVlAn/WBTechL0/internal/service"
+	response "github.com/GroVlAn/WBTechL0/internal/tools/resp"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
@@ -9,7 +11,7 @@ import (
 func (hh *HttpHandler) OrderHandler() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Route("/order", func(r chi.Router) {
+	router.Route("/", func(r chi.Router) {
 		r.Get("/{orderID}", hh.Order)
 		r.Post("/", hh.CreateOrder)
 		r.Delete("/{orderID}", hh.DeleteOrder)
@@ -19,28 +21,60 @@ func (hh *HttpHandler) OrderHandler() *chi.Mux {
 }
 
 func (hh *HttpHandler) CreateOrder(w http.ResponseWriter, req *http.Request) {
-	writeresp.Write(
-		hh.log,
-		[]byte("Create order"),
-		"error can not write order response",
-		w.Write,
-	)
+	var ordReq service.OrderReq
+	err := json.NewDecoder(req.Body).Decode(&ordReq)
+
+	if err != nil {
+		invDResp := response.InvalidDataResponse{
+			Message: "incorrect data",
+			Example: service.ExampleOrderReq,
+		}
+		response.Resp(w, hh.log, nil, invDResp, http.StatusBadRequest)
+		return
+	}
+
+	ordUid, errOrd := hh.orServ.CreateOrder(ordReq)
+
+	if errOrd != nil {
+		response.ErrResponse(w, hh.log, errOrd)
+		return
+	}
+
+	ordReps := struct {
+		Uid string `json:"order_uid"`
+	}{
+		Uid: ordUid,
+	}
+
+	response.Resp(w, hh.log, ordReps, nil, http.StatusCreated)
 }
 
 func (hh *HttpHandler) Order(w http.ResponseWriter, req *http.Request) {
-	writeresp.Write(
-		hh.log,
-		[]byte("Order"),
-		"error can not write order response",
-		w.Write,
-	)
+	ordId := chi.URLParam(req, "orderID")
+
+	ordRepr, err := hh.orServ.Order(ordId)
+
+	if err != nil {
+		response.ErrResponse(w, hh.log, err)
+		return
+	}
+
+	response.Resp(w, hh.log, ordRepr, nil, http.StatusOK)
 }
 
 func (hh *HttpHandler) DeleteOrder(w http.ResponseWriter, req *http.Request) {
-	writeresp.Write(
-		hh.log,
-		[]byte("Order"),
-		"error can not write order response",
-		w.Write,
-	)
+	ordUid := chi.URLParam(req, "orderID")
+	delOrdUid, err := hh.orServ.DeleteOrder(ordUid)
+
+	if err != nil {
+		response.ErrResponse(w, hh.log, err)
+		return
+	}
+
+	ordReps := struct {
+		Uid string `json:"order_uid"`
+	}{
+		Uid: delOrdUid,
+	}
+	response.Resp(w, hh.log, ordReps, nil, http.StatusOK)
 }

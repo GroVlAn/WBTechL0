@@ -5,9 +5,22 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/asaskevich/govalidator"
-	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"net/http"
 )
+
+var ExampleProdReq = ProductRepr{
+	TrackNumber: "WBILMTESTTRACK",
+	Price:       453,
+	Rid:         "ab4219087a764ae0btest",
+	Name:        "Mascaras",
+	Sale:        30,
+	Size:        "0",
+	TotalPrice:  317,
+	NmId:        2389212,
+	Brand:       "Vivienne Sabo",
+	Status:      202,
+}
 
 type ProductRepr struct {
 	Id          int    `json:"chrt_id" valid:"int, required"`
@@ -41,7 +54,7 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int, error) {
 	}
 
 	if !result {
-		return -1, errors.New("no valid data")
+		return -1, core.NewInvalidDataErr(http.StatusBadRequest, "product", ExampleProdReq)
 	}
 
 	prod := core.Product(prodRpr)
@@ -49,6 +62,18 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int, error) {
 	id, err := pr.repos.Create(prod)
 
 	return id, err
+}
+
+func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
+	prodsReps := make([]ProductRepr, 0)
+
+	prods, err := pr.repos.FindByTrackNumber(trNum)
+
+	for _, prod := range prods {
+		prodsReps = append(prodsReps, ProductRepr(prod))
+	}
+
+	return prodsReps, err
 }
 
 func (pr *ProductServ) Product(id int) (ProductRepr, error) {

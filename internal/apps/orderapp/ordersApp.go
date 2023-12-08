@@ -66,7 +66,13 @@ func (p *OrdersApp) Run(mode string) {
 		repo.OrderRepository,
 	)
 
-	httpHand := rest.NewHttpHandler(log, ser)
+	httpHand := rest.NewHttpHandler(
+		log,
+		ser.ProductService,
+		ser.DeliveryService,
+		ser.PaymentService,
+		ser.OrderService,
+	)
 	serv := servhttp.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 
 	go func() {

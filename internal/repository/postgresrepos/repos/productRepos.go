@@ -1,10 +1,12 @@
 package repos
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"net/http"
 )
 
 const (
@@ -51,7 +53,7 @@ func (pr *ProductRepos) Create(prod core.Product) (int, error) {
 	)
 
 	if err := row.Scan(&id); err != nil {
-		return -1, errors.Wrap(err, "error can not create product")
+		return -1, core.NewCantCreateErr(http.StatusBadRequest, "product")
 	}
 
 	return id, nil
@@ -62,17 +64,39 @@ func (pr *ProductRepos) Product(id int) (core.Product, error) {
 	query := fmt.Sprintf("SELECT * FROM %s WHERE chrt_id=$1", productTable)
 	err := pr.db.Get(&product, query, id)
 
-	return product, errors.Wrap(err, "product not found")
+	if errors.Is(err, sql.ErrNoRows) {
+		return core.Product{}, core.NewNotFundErr(http.StatusNotFound, "product")
+	}
+
+	return product, core.NewCantCreateErr(http.StatusBadRequest, "product")
+}
+
+func (pr *ProductRepos) FindByTrackNumber(trNumb string) ([]core.Product, error) {
+	var prods []core.Product
+	query := fmt.Sprintf("SElECT * FROM %s WHERE track_number=$1 ORDER BY chrt_id", productTable)
+
+	err := pr.db.Select(&prods, query, trNumb)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, core.NewNotFundErr(http.StatusNotFound, "products")
+		}
+
+		return nil, core.NewCantCreateErr(http.StatusBadRequest, "products")
+	}
+
+	return prods, nil
 }
 
 func (pr *ProductRepos) Delete(id int) (int, error) {
-	var delProdId int
 	query := fmt.Sprintf("DELETE FROM %s WHERE chrt_id=$1 RETURNING chrt_id", productTable)
-	row := pr.db.QueryRow(query, id)
+	_, err := pr.db.Exec(query, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return -1, core.NewNotFundErr(http.StatusNotFound, "product")
+		}
 
-	if err := row.Scan(&delProdId); err != nil {
-		return -1, errors.Wrap(err, "product not found")
+		return -1, core.NewNotFundErr(http.StatusBadRequest, "product")
 	}
 
-	return delProdId, nil
+	return id, nil
 }

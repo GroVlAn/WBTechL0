@@ -23,25 +23,24 @@ func NewPostgresRepos(db *sqlx.DB) *PostgresRepos {
 }
 
 type DeliveryRepository interface {
-	Create(d core.Delivery) (int, error)
-	Delivery(id int) (core.Delivery, error)
+	Delivery(id int64) (core.Delivery, error)
 	Delete(id int) (int, error)
 }
 
 type PaymentRepository interface {
-	Create(pmt core.Payment) (int, error)
-	Payment(id int) (core.Payment, error)
-	Delete(id int) (int, error)
+	Payment(tran string) (core.Payment, error)
+	Delete(tran string) (string, error)
 }
 
 type ProductRepository interface {
 	Create(prod core.Product) (int, error)
+	FindByTrackNumber(trNumb string) ([]core.Product, error)
 	Product(id int) (core.Product, error)
 	Delete(id int) (int, error)
 }
 
 type OrderRepository interface {
-	Create(ord core.Order, dId int, pmtId int, prodId int) (int, error)
-	Order(id int) (core.Order, error)
-	Delete(id int) (int, error)
+	Create(ord core.Order, d core.Delivery, pmt core.Payment) (string, error)
+	Order(orderUid string) (core.Order, error)
+	Delete(orderUid string) (string, error)
 }

@@ -2,7 +2,6 @@ package rest
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/service"
 	response "github.com/GroVlAn/WBTechL0/internal/tools/resp"
 	"github.com/go-chi/chi/v5"
@@ -13,8 +12,9 @@ import (
 func (hh *HttpHandler) ProductHandler() *chi.Mux {
 	router := chi.NewRouter()
 
-	router.Route("/product", func(r chi.Router) {
+	router.Route("/", func(r chi.Router) {
 		r.Get("/{productID}", hh.Product)
+		r.Get("/all/{trackNumber}", hh.All)
 		r.Post("/", hh.CreateProduct)
 		r.Delete("/{productID}", hh.DeleteProduct)
 	})
@@ -27,8 +27,11 @@ func (hh *HttpHandler) CreateProduct(w http.ResponseWriter, req *http.Request) {
 	err := json.NewDecoder(req.Body).Decode(&prodRepr)
 
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		response.Resp(w, hh.log, nil, "incorrect data", http.StatusBadRequest)
+		invDResp := response.InvalidDataResponse{
+			Message: "incorrect data",
+			Example: service.ExampleProdReq,
+		}
+		response.Resp(w, hh.log, nil, invDResp, http.StatusBadRequest)
 		return
 	}
 
@@ -48,6 +51,18 @@ func (hh *HttpHandler) CreateProduct(w http.ResponseWriter, req *http.Request) {
 	response.Resp(w, hh.log, prodResp, nil, http.StatusCreated)
 }
 
+func (hh *HttpHandler) All(w http.ResponseWriter, req *http.Request) {
+	trNum := chi.URLParam(req, "trackNumber")
+
+	prReps, err := hh.prodServ.All(trNum)
+
+	if err != nil {
+		response.Resp(w, hh.log, nil, err.Error(), http.StatusBadRequest)
+	}
+
+	response.Resp(w, hh.log, prReps, nil, http.StatusOK)
+}
+
 func (hh *HttpHandler) Product(w http.ResponseWriter, req *http.Request) {
 	prodId := chi.URLParam(req, "productID")
 	id, err := strconv.Atoi(prodId)
@@ -57,11 +72,10 @@ func (hh *HttpHandler) Product(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Println(id)
 	prodRepr, errPr := hh.prodServ.Product(id)
 
 	if errPr != nil {
-		response.Resp(w, hh.log, nil, errPr.Error(), http.StatusNotFound)
+		response.ErrResponse(w, hh.log, errPr)
 		return
 	}
 
@@ -80,7 +94,7 @@ func (hh *HttpHandler) DeleteProduct(w http.ResponseWriter, req *http.Request) {
 	delProdId, errDel := hh.prodServ.DeleteProduct(id)
 
 	if errDel != nil {
-		response.Resp(w, hh.log, nil, errDel, http.StatusNotFound)
+		response.ErrResponse(w, hh.log, errDel)
 		return
 	}
 

@@ -13,36 +13,35 @@ func NewService(
 	prodRepos prepos.ProductRepository,
 	pmtRepos prepos.PaymentRepository,
 	dRepos prepos.DeliveryRepository,
-	orRepos prepos.OrderRepository,
+	ordRepos prepos.OrderRepository,
 ) *Service {
 	return &Service{
 		ProductService:  NewProductServ(prodRepos),
 		PaymentService:  NewPaymentServ(pmtRepos),
 		DeliveryService: NewDeliveryServ(dRepos),
-		OrderService:    NewOrderServ(orRepos),
+		OrderService:    NewOrderServ(ordRepos, dRepos, pmtRepos, prodRepos),
 	}
 }
 
 type ProductService interface {
 	CreateProduct(prodRpr ProductRepr) (int, error)
 	Product(id int) (ProductRepr, error)
+	All(trNum string) ([]ProductRepr, error)
 	DeleteProduct(id int) (int, error)
 }
 
 type PaymentService interface {
-	CreatePayment(pmtRepr PaymentRepr) (int, error)
-	Payment(id int) (PaymentRepr, error)
-	DeletePayment(id int) (int, error)
+	Payment(tran string) (PaymentRepr, error)
+	DeletePayment(tran string) (string, error)
 }
 
 type DeliveryService interface {
-	CreateDelivery(dRepr DeliveryRepr) (int, error)
-	Delivery(id int) (DeliveryRepr, error)
+	Delivery(id int64) (DeliveryRepr, error)
 	DeleteDelivery(id int) (int, error)
 }
 
 type OrderService interface {
-	CreateOrder(orReq OrderReq) (int, error)
-	Order(id int) (OrderRepr, error)
-	DeleteOrder(id int) (int, error)
+	CreateOrder(orReq OrderReq) (string, error)
+	Order(ordUid string) (OrderRepr, error)
+	DeleteOrder(ordUid string) (string, error)
 }

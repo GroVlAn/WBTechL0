@@ -1,16 +1,12 @@
 package service
 
 import (
-	"errors"
-	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
-	"github.com/asaskevich/govalidator"
-	"github.com/sirupsen/logrus"
 )
 
 type PaymentRepr struct {
-	Id           int    `json:"-" db:"id"`
-	Transaction  string `json:"transaction" valid:"type(string), required"`
+	Id           int64  `json:"-" db:"id"`
+	Transaction  string `json:"transaction" valid:"-"`
 	RequestId    string `json:"request_id" valid:"type(string)"`
 	Currency     string `json:"currency" valid:"type(string), required"`
 	Provider     string `json:"provider" valid:"type(string), required"`
@@ -32,32 +28,14 @@ func NewPaymentServ(repos prepos.PaymentRepository) *PaymentServ {
 	}
 }
 
-func (ps *PaymentServ) CreatePayment(pmtRepr PaymentRepr) (int, error) {
-	result, err := govalidator.ValidateStruct(pmtRepr)
-
-	if err != nil {
-		logrus.Errorln(err.Error())
-	}
-
-	if !result {
-		return -1, errors.New("invalid data")
-	}
-
-	pmt := core.Payment(pmtRepr)
-
-	id, errPmt := ps.repos.Create(pmt)
-
-	return id, errPmt
-}
-
-func (ps *PaymentServ) Payment(id int) (PaymentRepr, error) {
-	pmt, err := ps.repos.Payment(id)
+func (ps *PaymentServ) Payment(tran string) (PaymentRepr, error) {
+	pmt, err := ps.repos.Payment(tran)
 
 	return PaymentRepr(pmt), err
 }
 
-func (ps *PaymentServ) DeletePayment(id int) (int, error) {
-	delPmtId, err := ps.repos.Delete(id)
+func (ps *PaymentServ) DeletePayment(tran string) (string, error) {
+	delPmtId, err := ps.repos.Delete(tran)
 
 	return delPmtId, err
 }
