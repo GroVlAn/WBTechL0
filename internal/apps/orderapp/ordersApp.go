@@ -8,8 +8,10 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/service"
 	"github.com/GroVlAn/WBTechL0/internal/tools/logwrap"
 	"github.com/GroVlAn/WBTechL0/internal/transport/rest"
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -29,20 +31,17 @@ const (
 	permission = 0644
 )
 
-func (p *OrdersApp) Run(mode string) {
+func (p *OrdersApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	logger := logwrap.NewLogger(logFile, permission)
-	defer func() {
-		if err := logger.File.Close(); err != nil {
-			logrus.Fatalf("error while closing file: %s", err.Error())
-		}
-	}()
 
 	if err := logger.InitLogger(); err != nil {
 		logrus.Fatalf(err.Error())
 	}
 
-	log := logger.Log
+	return logger, logger.Log
+}
 
+func (p *OrdersApp) initConfig(mode string) config.Config {
 	if err := config.InitEnv(); err != nil {
 		log.Fatalf("error initializing env: %s", err.Error())
 	}
@@ -50,14 +49,21 @@ func (p *OrdersApp) Run(mode string) {
 	if err := config.InitConfig(pathConfig, nameConfig); err != nil {
 		log.Fatalf("error initializing config: %s", err.Error())
 	}
-	conf := config.NewConfig(mode)
 
+	return config.NewConfig(mode)
+}
+
+func (p *OrdersApp) initDB(conf *config.Config) *sqlx.DB {
 	db, err := postgres.NewPostgresqlDB(conf.PostgresConfig)
 
 	if err != nil {
 		log.Fatalf("DB error: %s", err.Error())
 	}
 
+	return db
+}
+
+func (p *OrdersApp) initRSH(log *logrus.Logger, db *sqlx.DB) *rest.HttpHandler {
 	repo := postgresrepos.NewPostgresRepos(log, db)
 	ser := service.NewService(
 		log,
@@ -67,13 +73,27 @@ func (p *OrdersApp) Run(mode string) {
 		repo.OrderRepository,
 	)
 
-	httpHand := rest.NewHttpHandler(
+	return rest.NewHttpHandler(
 		log,
 		ser.ProductService,
 		ser.DeliveryService,
 		ser.PaymentService,
 		ser.OrderService,
 	)
+}
+
+func (p *OrdersApp) Run(mode string) {
+	logger, log := p.initLogger()
+	defer func() {
+		if err := logger.File.Close(); err != nil {
+			logrus.Fatalf("error while closing file: %s", err.Error())
+		}
+	}()
+
+	conf := p.initConfig(mode)
+	db := p.initDB(&conf)
+	httpHand := p.initRSH(log, db)
+
 	serv := servhttp.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 
 	go func() {
