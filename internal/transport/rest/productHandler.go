@@ -43,7 +43,7 @@ func (hh *HttpHandler) CreateProduct(w http.ResponseWriter, req *http.Request) {
 	}
 
 	prodResp := struct {
-		Id int `json:"id"`
+		Id int64 `json:"id"`
 	}{
 		Id: id,
 	}
@@ -65,6 +65,12 @@ func (hh *HttpHandler) All(w http.ResponseWriter, req *http.Request) {
 
 func (hh *HttpHandler) Product(w http.ResponseWriter, req *http.Request) {
 	prodId := chi.URLParam(req, "productID")
+
+	if prodId == "" {
+		response.Resp(w, hh.log, nil, "miss product uid", http.StatusNotFound)
+		return
+	}
+
 	id, err := strconv.Atoi(prodId)
 
 	if err != nil {
@@ -72,7 +78,7 @@ func (hh *HttpHandler) Product(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	prodRepr, errPr := hh.prodServ.Product(id)
+	prodRepr, errPr := hh.prodServ.Product(int64(id))
 
 	if errPr != nil {
 		response.ErrResponse(w, hh.log, errPr)
@@ -84,6 +90,12 @@ func (hh *HttpHandler) Product(w http.ResponseWriter, req *http.Request) {
 
 func (hh *HttpHandler) DeleteProduct(w http.ResponseWriter, req *http.Request) {
 	prodId := chi.URLParam(req, "productID")
+
+	if prodId == "" {
+		response.Resp(w, hh.log, nil, "miss product uid", http.StatusNotFound)
+		return
+	}
+
 	id, err := strconv.Atoi(prodId)
 
 	if err != nil {
@@ -91,7 +103,7 @@ func (hh *HttpHandler) DeleteProduct(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	delProdId, errDel := hh.prodServ.DeleteProduct(id)
+	delProdId, errDel := hh.prodServ.DeleteProduct(int64(id))
 
 	if errDel != nil {
 		response.ErrResponse(w, hh.log, errDel)
@@ -99,7 +111,7 @@ func (hh *HttpHandler) DeleteProduct(w http.ResponseWriter, req *http.Request) {
 	}
 
 	delProdResp := struct {
-		Id int `json:"id"`
+		Id int64 `json:"id"`
 	}{
 		Id: delProdId,
 	}

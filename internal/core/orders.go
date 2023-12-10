@@ -28,7 +28,7 @@ type Delivery struct {
 }
 
 type Order struct {
-	Id                 int       `json:"-" db:"id"`
+	Id                 int64     `json:"-" db:"id"`
 	OrderUid           string    `json:"order_uid" db:"order_uid"`
 	TrackNumber        string    `json:"track_number" db:"track_number"`
 	Entry              string    `json:"entry" db:"entry"`
@@ -45,7 +45,7 @@ type Order struct {
 }
 
 type Product struct {
-	Id          int    `json:"chrt_id" db:"chrt_id"`
+	Id          int64  `json:"chrt_id" db:"chrt_id"`
 	TrackNumber string `json:"track_number" db:"track_number"`
 	Price       int64  `json:"price" db:"price"`
 	Rid         string `json:"rid" db:"rid"`

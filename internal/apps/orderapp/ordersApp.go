@@ -3,6 +3,7 @@ package orderapp
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"
 	"github.com/GroVlAn/WBTechL0/internal/database/postgres"
+	"github.com/GroVlAn/WBTechL0/internal/repository/cacherepo"
 	"github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/GroVlAn/WBTechL0/internal/server/servhttp"
 	"github.com/GroVlAn/WBTechL0/internal/service"
@@ -65,8 +66,16 @@ func (p *OrdersApp) initDB(conf *config.Config) *sqlx.DB {
 
 func (p *OrdersApp) initRSH(log *logrus.Logger, db *sqlx.DB) *rest.HttpHandler {
 	repo := postgresrepos.NewPostgresRepos(log, db)
+	ch := cacherepo.NewCache(log)
+	ch.LoadAll(
+		repo.DeliveryRepository.All,
+		repo.OrderRepository.All,
+		repo.PaymentRepository.All,
+		repo.ProductRepository.All,
+	)
 	ser := service.NewService(
 		log,
+		ch,
 		repo.ProductRepository,
 		repo.PaymentRepository,
 		repo.DeliveryRepository,
@@ -83,7 +92,7 @@ func (p *OrdersApp) initRSH(log *logrus.Logger, db *sqlx.DB) *rest.HttpHandler {
 }
 
 func (p *OrdersApp) Run(mode string) {
-	logger, log := p.initLogger()
+	logger, logApp := p.initLogger()
 	defer func() {
 		if err := logger.File.Close(); err != nil {
 			logrus.Fatalf("error while closing file: %s", err.Error())
@@ -92,17 +101,17 @@ func (p *OrdersApp) Run(mode string) {
 
 	conf := p.initConfig(mode)
 	db := p.initDB(&conf)
-	httpHand := p.initRSH(log, db)
+	httpHand := p.initRSH(logApp, db)
 
 	serv := servhttp.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 
 	go func() {
 		if err := serv.Start(); err != nil {
-			log.Fatalf("error occurred while starting server: %s", err.Error())
+			logApp.Fatalf("error occurred while starting server: %s", err.Error())
 		}
 	}()
 
-	log.Infoln("Service orders is started")
+	logApp.Infoln("Service orders is started")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)

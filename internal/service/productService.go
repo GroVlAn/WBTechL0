@@ -23,7 +23,7 @@ var ExampleProdReq = ProductRepr{
 }
 
 type ProductRepr struct {
-	Id          int    `json:"chrt_id" valid:"int, required"`
+	Id          int64  `json:"chrt_id" valid:"int, required"`
 	TrackNumber string `json:"track_number" valid:"type(string), required"`
 	Price       int64  `json:"price" valid:"int, required"`
 	Rid         string `json:"rid" valid:"type(string), required"`
@@ -38,17 +38,19 @@ type ProductRepr struct {
 
 type ProductServ struct {
 	log   *logrus.Logger
+	ch    Cacher
 	repos prepos.ProductRepository
 }
 
-func NewProductServ(log *logrus.Logger, repos prepos.ProductRepository) *ProductServ {
+func NewProductServ(log *logrus.Logger, ch Cacher, repos prepos.ProductRepository) *ProductServ {
 	return &ProductServ{
 		log:   log,
+		ch:    ch,
 		repos: repos,
 	}
 }
 
-func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int, error) {
+func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int64, error) {
 	result, err := govalidator.ValidateStruct(prodRpr)
 
 	if err != nil {
@@ -64,9 +66,17 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int, error) {
 	fmt.Println(prod)
 	id, err := pr.repos.Create(prod)
 
-	pr.log.Info("service product try create")
+	if err != nil {
+		pr.log.Errorf("service product: can not create product: %s", err.Error())
+		return -1, err
+	}
 
-	return id, err
+	prodRpr.Id = id
+
+	pr.ch.SetProduct(id, prodRpr)
+	pr.log.Info("service product create")
+
+	return id, nil
 }
 
 func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
@@ -88,7 +98,14 @@ func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
 	return prodsReps, nil
 }
 
-func (pr *ProductServ) Product(id int) (ProductRepr, error) {
+func (pr *ProductServ) Product(id int64) (ProductRepr, error) {
+	prodCh, err := pr.ch.Product(id)
+
+	if err == nil {
+		pr.log.Infof("service product find in cache product by id: %d", id)
+		return prodCh, nil
+	}
+
 	prod, err := pr.repos.Product(id)
 
 	pr.log.Infof("service product find by id: %d", id)
@@ -96,9 +113,15 @@ func (pr *ProductServ) Product(id int) (ProductRepr, error) {
 	return ProductRepr(prod), err
 }
 
-func (pr *ProductServ) DeleteProduct(id int) (int, error) {
+func (pr *ProductServ) DeleteProduct(id int64) (int64, error) {
 	delProdId, err := pr.repos.Delete(id)
 
+	if err != nil {
+		pr.log.Errorf("service product delete: can not delete product: %s", err.Error())
+		return -1, err
+	}
+
+	pr.ch.DeleteProduct(id)
 	pr.log.Infof("service product delete by id: %d", id)
 
 	return delProdId, err

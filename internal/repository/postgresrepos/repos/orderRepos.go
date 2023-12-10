@@ -72,7 +72,7 @@ func (or *OrderRepos) Create(ord core.Order, d core.Delivery, pmt core.Payment) 
 		"delivery_cost,"+
 		"goods_total,"+
 		"custom_fee) VALUES "+
-		"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING transaction", paymentTable)
+		"($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING transaction, id", paymentTable)
 	rowPmt := tx.QueryRow(
 		queryPmt,
 		pmt.Transaction,
@@ -177,4 +177,22 @@ func (or *OrderRepos) Delete(orderUid string) (string, error) {
 
 	or.log.Infof("delete payment with order_uid: %s", orderUid)
 	return orderUid, nil
+}
+
+func (or *OrderRepos) All() ([]core.Order, error) {
+	var ords []core.Order
+	query := fmt.Sprintf("SELECT * FROM \"%s\" ORDER BY id DESC", orderTable)
+	err := or.db.Select(&ords, query)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			or.log.Errorf("error all orders: not foud: %s", err.Error())
+			return nil, core.NewNotFundErr(http.StatusNotFound, "orders")
+		}
+
+		or.log.Errorf("error can not get all orders: %s", err.Error())
+		return nil, core.NewCantCreateErr(http.StatusBadRequest, "orders")
+	}
+
+	return ords, nil
 }

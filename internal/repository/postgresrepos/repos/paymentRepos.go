@@ -63,3 +63,21 @@ func (pr *PaymentRepos) Delete(tran string) (string, error) {
 	pr.log.Infof("delete payment with transaction: %s", tran)
 	return tran, nil
 }
+
+func (pr *PaymentRepos) All() ([]core.Payment, error) {
+	var pmts []core.Payment
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY id DESC", paymentTable)
+	err := pr.db.Select(&pmts, query)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error all payments: not foud: %s", err.Error())
+			return nil, core.NewNotFundErr(http.StatusNotFound, "payments")
+		}
+
+		pr.log.Errorf("error can not get all payments: %s", err.Error())
+		return nil, core.NewCantCreateErr(http.StatusBadRequest, "payments")
+	}
+
+	return pmts, nil
+}

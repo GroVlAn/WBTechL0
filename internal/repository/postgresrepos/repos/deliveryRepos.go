@@ -45,7 +45,7 @@ func (dr *DeliveryRepos) Delivery(id int64) (core.Delivery, error) {
 	return delivery, nil
 }
 
-func (dr *DeliveryRepos) Delete(id int) (int, error) {
+func (dr *DeliveryRepos) Delete(id int64) (int64, error) {
 	query := fmt.Sprintf("DELETE FROM %s WHERE id=$1", deliveryTable)
 	_, err := dr.db.Exec(query, id)
 
@@ -61,4 +61,22 @@ func (dr *DeliveryRepos) Delete(id int) (int, error) {
 
 	dr.log.Infof("delete delivery with id: %d", id)
 	return id, nil
+}
+
+func (dr *DeliveryRepos) All() ([]core.Delivery, error) {
+	var dlvs []core.Delivery
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY id DESC", deliveryTable)
+	err := dr.db.Select(&dlvs, query)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			dr.log.Errorf("error all deliveries: not foud: %s", err.Error())
+			return nil, core.NewNotFundErr(http.StatusNotFound, "deliveries")
+		}
+
+		dr.log.Errorf("error can not get all deliveries: %s", err.Error())
+		return nil, core.NewCantCreateErr(http.StatusBadRequest, "deliveries")
+	}
+
+	return dlvs, nil
 }

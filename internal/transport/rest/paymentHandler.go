@@ -1,6 +1,7 @@
 package rest
 
 import (
+	"fmt"
 	response "github.com/GroVlAn/WBTechL0/internal/tools/resp"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -18,7 +19,14 @@ func (hh *HttpHandler) PaymentHandler() *chi.Mux {
 }
 
 func (hh *HttpHandler) Payment(w http.ResponseWriter, req *http.Request) {
-	pmtId := chi.URLParam(req, "paymentId")
+	pmtId := chi.URLParam(req, "paymentID")
+
+	if pmtId == "" {
+		response.Resp(w, hh.log, nil, "miss payment uid", http.StatusNotFound)
+		return
+	}
+
+	fmt.Println(pmtId)
 
 	pmtResp, errPmt := hh.pmtServ.Payment(pmtId)
 
@@ -31,7 +39,12 @@ func (hh *HttpHandler) Payment(w http.ResponseWriter, req *http.Request) {
 }
 
 func (hh *HttpHandler) DeletePayment(w http.ResponseWriter, req *http.Request) {
-	pmtId := chi.URLParam(req, "paymentId")
+	pmtId := chi.URLParam(req, "paymentID")
+
+	if pmtId == "" {
+		response.Resp(w, hh.log, nil, "miss payment uid", http.StatusNotFound)
+		return
+	}
 
 	delPmtTran, errDelPmt := hh.pmtServ.DeletePayment(pmtId)
 

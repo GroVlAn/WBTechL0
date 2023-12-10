@@ -46,6 +46,7 @@ var ExampleOrderReq = OrderReq{
 }
 
 type OrderRepr struct {
+	Id                int64         `json:"-"`
 	OrderUid          string        `json:"order_uid"`
 	TrackNumber       string        `json:"track_number"`
 	Entry             string        `json:"entry"`
@@ -79,6 +80,7 @@ type OrderReq struct {
 
 type OrderServ struct {
 	log      *logrus.Logger
+	ch       Cacher
 	ordRepo  prepos.OrderRepository
 	dRepos   prepos.DeliveryRepository
 	pmtRepo  prepos.PaymentRepository
@@ -87,6 +89,7 @@ type OrderServ struct {
 
 func NewOrderServ(
 	log *logrus.Logger,
+	ch Cacher,
 	repos prepos.OrderRepository,
 	dRepos prepos.DeliveryRepository,
 	pmtRepo prepos.PaymentRepository,
@@ -94,6 +97,7 @@ func NewOrderServ(
 ) *OrderServ {
 	return &OrderServ{
 		log:      log,
+		ch:       ch,
 		ordRepo:  repos,
 		dRepos:   dRepos,
 		pmtRepo:  pmtRepo,
@@ -110,7 +114,7 @@ func (ors *OrderServ) CreateOrder(ordReq OrderReq) (string, error) {
 	}
 
 	if !result {
-		ors.log.Errorln("order create: invalid data")
+		ors.log.Errorln("serice order create: invalid data")
 		return "", core.NewInvalidDataErr(http.StatusBadRequest, "order", ExampleOrderReq)
 	}
 
@@ -136,12 +140,53 @@ func (ors *OrderServ) CreateOrder(ordReq OrderReq) (string, error) {
 	}
 	ordUid, errOrd := ors.ordRepo.Create(ord, d, pmt)
 
-	ors.log.Info("service try to create new order")
+	if errOrd != nil {
+		ors.log.Errorf("service order create: can not create order: %s", errOrd.Error())
+		return "", errOrd
+	}
 
-	return ordUid, errOrd
+	prods, _ := ors.prodRepo.All()
+
+	prodsReprs := make([]ProductRepr, 0)
+
+	for _, item := range prods {
+		if item.TrackNumber == ord.TrackNumber {
+			prodsReprs = append(prodsReprs, ProductRepr(item))
+		}
+	}
+
+	ordRepr := OrderRepr{
+		OrderUid:          ord.OrderUid,
+		TrackNumber:       ord.TrackNumber,
+		Entry:             ord.Entry,
+		Delivery:          DeliveryRepr(d),
+		Payment:           PaymentRepr(pmt),
+		Items:             prodsReprs,
+		Locale:            ord.Locale,
+		InternalSignature: ord.InternalSignature,
+		CustomerId:        ord.CustomerId,
+		DeliveryService:   ord.DeliveryService,
+		Shardkey:          ord.Shardkey,
+		SmId:              ord.SmId,
+		OofShard:          ord.OofShard,
+		DateCreated:       ord.DateCreated.Format(dateCreatedFormat),
+	}
+
+	ors.ch.SetOrder(ordUid, ordRepr)
+
+	ors.log.Info("service create new order")
+
+	return ordUid, nil
 }
 
 func (ors *OrderServ) Order(ordUid string) (OrderRepr, error) {
+	ordCh, err := ors.ch.Order(ordUid)
+
+	if err == nil {
+		ors.log.Infof("service order find in cache order by order uid: %s", ordUid)
+		return ordCh, nil
+	}
+
 	ord, errOrd := ors.ordRepo.Order(ordUid)
 
 	if errOrd != nil {
@@ -201,7 +246,14 @@ func (ors *OrderServ) Order(ordUid string) (OrderRepr, error) {
 func (ors *OrderServ) DeleteOrder(ordUid string) (string, error) {
 	delOrdUid, err := ors.ordRepo.Delete(ordUid)
 
-	ors.log.Infof("service order try delete order by order_uid: %s", ordUid)
+	if err != nil {
+		ors.log.Errorf("servie order: can not delete order: %s", err.Error())
+		return "", err
+	}
 
-	return delOrdUid, err
+	ors.log.Infof("service order delete order by order_uid: %s", ordUid)
+
+	ors.ch.DeleteOrder(ordUid)
+
+	return delOrdUid, nil
 }

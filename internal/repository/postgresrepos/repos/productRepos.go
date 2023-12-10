@@ -26,8 +26,8 @@ func NewProductRepos(log *logrus.Logger, db *sqlx.DB) *ProductRepos {
 	}
 }
 
-func (pr *ProductRepos) Create(prod core.Product) (int, error) {
-	var id int
+func (pr *ProductRepos) Create(prod core.Product) (int64, error) {
+	var id int64
 	query := fmt.Sprintf("INSERT INTO %s ("+
 		"track_number,"+
 		"price,"+
@@ -64,7 +64,7 @@ func (pr *ProductRepos) Create(prod core.Product) (int, error) {
 	return id, nil
 }
 
-func (pr *ProductRepos) Product(id int) (core.Product, error) {
+func (pr *ProductRepos) Product(id int64) (core.Product, error) {
 	var product core.Product
 	query := fmt.Sprintf("SELECT * FROM %s WHERE chrt_id=$1", productTable)
 	err := pr.db.Get(&product, query, id)
@@ -104,7 +104,7 @@ func (pr *ProductRepos) FindByTrackNumber(trNumb string) ([]core.Product, error)
 	return prods, nil
 }
 
-func (pr *ProductRepos) Delete(id int) (int, error) {
+func (pr *ProductRepos) Delete(id int64) (int64, error) {
 	query := fmt.Sprintf("DELETE FROM %s WHERE chrt_id=$1 RETURNING chrt_id", productTable)
 	_, err := pr.db.Exec(query, id)
 	if err != nil {
@@ -119,4 +119,22 @@ func (pr *ProductRepos) Delete(id int) (int, error) {
 
 	pr.log.Infof("delete product by id: %d", id)
 	return id, nil
+}
+
+func (pr *ProductRepos) All() ([]core.Product, error) {
+	var prods []core.Product
+	query := fmt.Sprintf("SELECT * FROM %s ORDER BY chrt_id DESC", productTable)
+	err := pr.db.Select(&prods, query)
+
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			pr.log.Errorf("error all products: not foud: %s", err.Error())
+			return nil, core.NewNotFundErr(http.StatusNotFound, "products")
+		}
+
+		pr.log.Errorf("error can not get all products: %s", err.Error())
+		return nil, core.NewCantCreateErr(http.StatusBadRequest, "products")
+	}
+
+	return prods, nil
 }

@@ -21,17 +21,26 @@ type PaymentRepr struct {
 
 type PaymentServ struct {
 	log   *logrus.Logger
+	ch    Cacher
 	repos prepos.PaymentRepository
 }
 
-func NewPaymentServ(log *logrus.Logger, repos prepos.PaymentRepository) *PaymentServ {
+func NewPaymentServ(log *logrus.Logger, ch Cacher, repos prepos.PaymentRepository) *PaymentServ {
 	return &PaymentServ{
 		log:   log,
+		ch:    ch,
 		repos: repos,
 	}
 }
 
 func (ps *PaymentServ) Payment(tran string) (PaymentRepr, error) {
+	pmtCh, err := ps.ch.Payment(tran)
+
+	if err == nil {
+		ps.log.Infof("service payment find in cache payment by transaction: %s", tran)
+		return pmtCh, nil
+	}
+
 	pmt, err := ps.repos.Payment(tran)
 
 	ps.log.Infof("service payment try to find by transactoion: %s", tran)
@@ -42,7 +51,13 @@ func (ps *PaymentServ) Payment(tran string) (PaymentRepr, error) {
 func (ps *PaymentServ) DeletePayment(tran string) (string, error) {
 	delPmtId, err := ps.repos.Delete(tran)
 
-	ps.log.Infof("service payment try to delete by transactoion: %s", tran)
+	if err != nil {
+		ps.log.Errorf("service payment delete: can not delete payment: %s", err.Error())
+		return "", err
+	}
 
-	return delPmtId, err
+	ps.ch.DeletePayment(tran)
+	ps.log.Infof("service payment delete by transactoion: %s", tran)
+
+	return delPmtId, nil
 }

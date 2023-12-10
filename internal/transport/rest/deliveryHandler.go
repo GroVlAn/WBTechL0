@@ -20,6 +20,12 @@ func (hh *HttpHandler) DeliveryHandler() *chi.Mux {
 
 func (hh *HttpHandler) Delivery(w http.ResponseWriter, req *http.Request) {
 	dId := chi.URLParam(req, "deliveryID")
+
+	if dId == "" {
+		response.Resp(w, hh.log, nil, "miss delivery id", http.StatusNotFound)
+		return
+	}
+
 	id, err := strconv.Atoi(dId)
 
 	if err != nil {
@@ -39,6 +45,12 @@ func (hh *HttpHandler) Delivery(w http.ResponseWriter, req *http.Request) {
 
 func (hh *HttpHandler) DeleteDelivery(w http.ResponseWriter, req *http.Request) {
 	dId := chi.URLParam(req, "deliveryID")
+
+	if dId == "" {
+		response.Resp(w, hh.log, nil, "miss delivery id", http.StatusNotFound)
+		return
+	}
+
 	id, err := strconv.Atoi(dId)
 
 	if err != nil {
@@ -46,7 +58,7 @@ func (hh *HttpHandler) DeleteDelivery(w http.ResponseWriter, req *http.Request) 
 		return
 	}
 
-	delDId, errDelD := hh.dServ.DeleteDelivery(id)
+	delDId, errDelD := hh.dServ.DeleteDelivery(int64(id))
 
 	if errDelD != nil {
 		response.ErrResponse(w, hh.log, errDelD)
@@ -54,7 +66,7 @@ func (hh *HttpHandler) DeleteDelivery(w http.ResponseWriter, req *http.Request) 
 	}
 
 	delDResp := struct {
-		Id int `json:"id"`
+		Id int64 `json:"id"`
 	}{
 		Id: delDId,
 	}

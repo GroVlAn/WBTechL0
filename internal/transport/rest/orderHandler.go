@@ -52,6 +52,11 @@ func (hh *HttpHandler) CreateOrder(w http.ResponseWriter, req *http.Request) {
 func (hh *HttpHandler) Order(w http.ResponseWriter, req *http.Request) {
 	ordId := chi.URLParam(req, "orderID")
 
+	if ordId == "" {
+		response.Resp(w, hh.log, nil, "miss order uid", http.StatusNotFound)
+		return
+	}
+
 	ordRepr, err := hh.orServ.Order(ordId)
 
 	if err != nil {
@@ -64,6 +69,12 @@ func (hh *HttpHandler) Order(w http.ResponseWriter, req *http.Request) {
 
 func (hh *HttpHandler) DeleteOrder(w http.ResponseWriter, req *http.Request) {
 	ordUid := chi.URLParam(req, "orderID")
+
+	if ordUid == "" {
+		response.Resp(w, hh.log, nil, "miss order uid", http.StatusNotFound)
+		return
+	}
+
 	delOrdUid, err := hh.orServ.DeleteOrder(ordUid)
 
 	if err != nil {
