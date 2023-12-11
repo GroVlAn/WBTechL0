@@ -1,7 +1,6 @@
 package rest
 
 import (
-	"fmt"
 	response "github.com/GroVlAn/WBTechL0/internal/tools/resp"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -25,8 +24,6 @@ func (hh *HttpHandler) Payment(w http.ResponseWriter, req *http.Request) {
 		response.Resp(w, hh.log, nil, "miss payment uid", http.StatusNotFound)
 		return
 	}
-
-	fmt.Println(pmtId)
 
 	pmtResp, errPmt := hh.pmtServ.Payment(pmtId)
 

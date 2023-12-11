@@ -8,6 +8,7 @@ import (
 	"github.com/GroVlAn/WBTechL0/internal/server/servhttp"
 	"github.com/GroVlAn/WBTechL0/internal/service"
 	"github.com/GroVlAn/WBTechL0/internal/tools/logwrap"
+	"github.com/GroVlAn/WBTechL0/internal/transport/natssub"
 	"github.com/GroVlAn/WBTechL0/internal/transport/rest"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
@@ -64,7 +65,7 @@ func (p *OrdersApp) initDB(conf *config.Config) *sqlx.DB {
 	return db
 }
 
-func (p *OrdersApp) initRSH(log *logrus.Logger, db *sqlx.DB) *rest.HttpHandler {
+func (p *OrdersApp) initRSH(log *logrus.Logger, db *sqlx.DB, conf config.Config) *rest.HttpHandler {
 	repo := postgresrepos.NewPostgresRepos(log, db)
 	ch := cacherepo.NewCache(log)
 	ch.LoadAll(
@@ -81,6 +82,15 @@ func (p *OrdersApp) initRSH(log *logrus.Logger, db *sqlx.DB) *rest.HttpHandler {
 		repo.DeliveryRepository,
 		repo.OrderRepository,
 	)
+
+	sub := natssub.NewSubscribe(
+		conf,
+		log,
+		ser.ProductService,
+		ser.OrderService,
+	)
+
+	sub.Run()
 
 	return rest.NewHttpHandler(
 		log,
@@ -101,7 +111,7 @@ func (p *OrdersApp) Run(mode string) {
 
 	conf := p.initConfig(mode)
 	db := p.initDB(&conf)
-	httpHand := p.initRSH(logApp, db)
+	httpHand := p.initRSH(logApp, db, conf)
 
 	serv := servhttp.NewHttpServer(&conf.ServerConfig, httpHand.Handler())
 

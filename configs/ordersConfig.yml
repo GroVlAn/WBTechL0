@@ -8,6 +8,12 @@ dev:
       username: "root"
       db_name: "wb_orders"
       sslmode: "disable"
+  nats:
+    cluster: "test-cluster"
+    port: "4222"
+    client_id: "subscriber-dev"
+    server: "localhost"
+
 
 prod:
   http:
@@ -19,3 +25,8 @@ prod:
       username: "root"
       db_name: "wb_orders"
       sslmode: "disable"
+  nats:
+    cluster: "test-cluster"
+    port: "4222"
+    client_id: "subscriber"
+    server: "wb_nats_streaming"

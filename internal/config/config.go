@@ -18,15 +18,25 @@ type ServerConfig struct {
 	WriteTimeout      time.Duration
 }
 
+type NatsConfig struct {
+	ClusterID      string
+	Port           string
+	ClientID       string
+	ConnectionWait time.Duration
+	NatsServer     string
+}
+
 type Config struct {
 	ServerConfig   ServerConfig
 	PostgresConfig postgres.Config
+	NatsConfig     NatsConfig
 }
 
 const (
 	maxHeaderBytes    = 1 << 20
 	readHeaderTimeout = 10 * time.Second
 	writeTimeout      = 10 * time.Second
+	natsConnectWait   = 5 * time.Minute
 )
 
 func NewConfig(mode string) Config {
@@ -50,6 +60,13 @@ func NewConfig(mode string) Config {
 			Password: password,
 			DBName:   viper.GetString(fmt.Sprintf("%s.db.postgres.db_name", mode)),
 			SSLMode:  viper.GetString(fmt.Sprintf("%s.db.postgres.sslmode", mode)),
+		},
+		NatsConfig: NatsConfig{
+			ClusterID:      viper.GetString(fmt.Sprintf("%s.nats.cluster", mode)),
+			ClientID:       viper.GetString(fmt.Sprintf("%s.nats.client_id", mode)),
+			Port:           viper.GetString(fmt.Sprintf("%s.nats.port", mode)),
+			ConnectionWait: natsConnectWait,
+			NatsServer:     viper.GetString(fmt.Sprintf("%s.nats.server", mode)),
 		},
 	}
 }

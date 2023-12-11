@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/asaskevich/govalidator"
@@ -63,7 +62,6 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int64, error) {
 	}
 
 	prod := core.Product(prodRpr)
-	fmt.Println(prod)
 	id, err := pr.repos.Create(prod)
 
 	if err != nil {

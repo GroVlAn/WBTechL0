@@ -1,4 +1,6 @@
 FROM scratch
 EXPOSE 8010
 WORKDIR /api/dataGenerator/
-ADD ./build/dataGenerator/ ./
+COPY ./build/dataGenerator/ ./
+COPY ./configs/ ./configs/
+COPY ./.env ./

@@ -1,7 +1,17 @@
 dev:
   http:
     port: "7020"
+  nats:
+    cluster: "test-cluster"
+    port: "4222"
+    client_id: "publisher-dev"
+    server: "localhost"
 
 prod:
   http:
     port: "8020"
+  nats:
+    cluster: "test-cluster"
+    port: "4222"
+    client_id: "publisher"
+    server: "wb_nats_streaming"

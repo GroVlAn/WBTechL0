@@ -12,6 +12,7 @@ services:
       - "8010:8010"
     networks:
       - postgres
+      - nats
     depends_on:
       orders_db:
         condition: service_healthy
@@ -21,12 +22,13 @@ services:
     build:
       context: ./
       dockerfile: dataGeneratorDockerfile
-    command: ./dataGenerator
+    command: ./dataGenerator --prod
     restart: always
     ports:
       - "8020:8020"
     networks:
       - postgres
+      - nats
     depends_on:
       - orders_db
 
@@ -87,9 +89,24 @@ services:
       orders_db:
         condition: service_healthy
 
+  nats_straming:
+    container_name: "wb_nats_streaming"
+    image: nats-streaming
+    environment:
+      STAN_CLUSTER_ID: "wb_nats_cluster"
+    networks:
+      - nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    expose:
+      - 4222
+
 volumes:
   wb_orders_db:
 
 networks:
   postgres:
+    driver: bridge
+  nats:
     driver: bridge
