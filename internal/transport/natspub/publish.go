@@ -13,10 +13,9 @@ import (
 )
 
 const (
-	ClientID     = "publisher"
 	ChannelOrd   = "order"
 	ChannelProd  = "product"
-	DelayPublish = 5 * time.Second
+	DelayPublish = 1 * time.Minute
 )
 
 type Publish struct {

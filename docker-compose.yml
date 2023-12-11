@@ -16,6 +16,8 @@ services:
     depends_on:
       orders_db:
         condition: service_healthy
+      nats_straming:
+        condition: service_started
 
   data_generator:
     container_name: "wb_service_data_generator"
@@ -31,6 +33,7 @@ services:
       - nats
     depends_on:
       - orders_db
+      - nats_straming
 
   orders_db:
     container_name: "wb_orders_db"
@@ -92,6 +95,7 @@ services:
   nats_straming:
     container_name: "wb_nats_streaming"
     image: nats-streaming
+    restart: always
     environment:
       STAN_CLUSTER_ID: "wb_nats_cluster"
     networks:

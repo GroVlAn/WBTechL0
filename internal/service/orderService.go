@@ -65,17 +65,17 @@ type OrderRepr struct {
 
 type OrderReq struct {
 	Id                int          `json:"-" valid:"-"`
-	TrackNumber       string       `json:"track_number" valid:"-"`
-	Entry             string       `json:"entry" valid:"-"`
+	TrackNumber       string       `json:"track_number" valid:"type(string), required"`
+	Entry             string       `json:"entry" valid:"type(string), required"`
 	Delivery          DeliveryRepr `json:"delivery" valid:"-"`
 	Payment           PaymentRepr  `json:"payment" valid:"-"`
-	Locale            string       `json:"locale" valid:"-"`
-	InternalSignature string       `json:"internal_signature" valid:"-"`
-	CustomerId        string       `json:"customer_id" valid:"-"`
-	DeliveryService   string       `json:"delivery_service" valid:"-""`
-	Shardkey          string       `json:"shardkey" valid:"-"`
-	SmId              int64        `json:"sm_id" valid:"-"`
-	OffShard          string       `json:"off_shard" valid:"-"`
+	Locale            string       `json:"locale" valid:"type(string), required"`
+	InternalSignature string       `json:"internal_signature" valid:"type(string)"`
+	CustomerId        string       `json:"customer_id" valid:"type(string), required"`
+	DeliveryService   string       `json:"delivery_service" valid:"type(string), required"`
+	Shardkey          string       `json:"shardkey" valid:"type(string), required"`
+	SmId              int64        `json:"sm_id" valid:"int, required"`
+	OffShard          string       `json:"off_shard" valid:"type(string), required"`
 }
 
 type OrderServ struct {

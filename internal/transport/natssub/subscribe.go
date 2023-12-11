@@ -10,7 +10,6 @@ import (
 )
 
 const (
-	ClientID    = "subscriber"
 	ChannelOrd  = "order"
 	ChannelProd = "product"
 )
@@ -63,7 +62,7 @@ func (s *Subscribe) Run() {
 }
 
 func (s *Subscribe) SubProduct() {
-	_, err := s.Sc.Subscribe(ChannelProd, func(m *stan.Msg) {
+	_, err := s.Sc.QueueSubscribe(ChannelProd, "product", func(m *stan.Msg) {
 		var prodRepr service.ProductRepr
 		errUnm := json.Unmarshal(m.Data, &prodRepr)
 
@@ -78,7 +77,7 @@ func (s *Subscribe) SubProduct() {
 				s.log.Infof("product by id %d is created", id)
 			}
 		}
-	})
+	}, stan.DurableName("sub-prod"))
 
 	if err != nil {
 		s.log.Errorf("can not subscibe product channel: %s", err.Error())
@@ -87,7 +86,7 @@ func (s *Subscribe) SubProduct() {
 }
 
 func (s *Subscribe) SubOrder() {
-	_, err := s.Sc.Subscribe(ChannelOrd, func(m *stan.Msg) {
+	_, err := s.Sc.QueueSubscribe(ChannelOrd, "order", func(m *stan.Msg) {
 		var ordReq service.OrderReq
 		errUnm := json.Unmarshal(m.Data, &ordReq)
 
@@ -99,10 +98,10 @@ func (s *Subscribe) SubOrder() {
 			if errCOrd != nil {
 				s.log.Errorf("can not create order: %s", errCOrd.Error())
 			} else {
-				s.log.Infof("order by id %d is created", id)
+				s.log.Infof("order by id %s is created", id)
 			}
 		}
-	})
+	}, stan.DurableName("sub-ord"))
 
 	if err != nil {
 		s.log.Errorf("can not subscibe order channel: %s", err.Error())
