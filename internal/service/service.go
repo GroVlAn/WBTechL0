@@ -49,6 +49,7 @@ type OrderService interface {
 	CreateOrder(ordReq OrderReq) (string, error)
 	Order(ordUid string) (OrderRepr, error)
 	DeleteOrder(ordUid string) (string, error)
+	All() ([]OrderRepr, error)
 }
 
 type Cacher interface {

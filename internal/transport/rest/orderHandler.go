@@ -13,6 +13,7 @@ func (hh *HttpHandler) OrderHandler() *chi.Mux {
 
 	router.Route("/", func(r chi.Router) {
 		r.Get("/{orderID}", hh.Order)
+		r.Get("/", hh.AllOrders)
 		r.Post("/", hh.CreateOrder)
 		r.Delete("/{orderID}", hh.DeleteOrder)
 	})
@@ -88,4 +89,27 @@ func (hh *HttpHandler) DeleteOrder(w http.ResponseWriter, req *http.Request) {
 		Uid: delOrdUid,
 	}
 	response.Resp(w, hh.log, ordReps, nil, http.StatusOK)
+}
+
+func (hh *HttpHandler) AllOrders(w http.ResponseWriter, req *http.Request) {
+	ords, err := hh.orServ.All()
+
+	if err != nil {
+		response.ErrResponse(w, hh.log, err)
+		return
+	}
+
+	ordIds := make([]string, 0)
+
+	for _, item := range ords {
+		ordIds = append(ordIds, item.OrderUid)
+	}
+
+	result := struct {
+		Ids []string `json:"ids,omitempty"`
+	}{
+		Ids: ordIds,
+	}
+
+	response.Resp(w, hh.log, result, nil, http.StatusOK)
 }

@@ -13,3 +13,13 @@ func SkipFavicon(next http.Handler) http.Handler {
 
 	return http.HandlerFunc(fn)
 }
+
+func Cors(next http.Handler) http.Handler {
+	fn := func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+
+		next.ServeHTTP(w, req)
+	}
+
+	return http.HandlerFunc(fn)
+}

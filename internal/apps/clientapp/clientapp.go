@@ -1,13 +1,12 @@
-package datagenapp
+package clientapp
 
 import (
 	"github.com/GroVlAn/WBTechL0/internal/config"
 	"github.com/GroVlAn/WBTechL0/internal/server/servhttp"
 	"github.com/GroVlAn/WBTechL0/internal/tools/logwrap"
-	"github.com/GroVlAn/WBTechL0/internal/transport/natspub"
+	"github.com/GroVlAn/WBTechL0/internal/transport/client"
 	"github.com/sirupsen/logrus"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +14,7 @@ import (
 
 const (
 	pathConfig = "configs"
-	nameConfig = "dataGeneratorConfig"
+	nameConfig = "clientConfig"
 )
 
 const (
@@ -23,10 +22,10 @@ const (
 	permission = 0644
 )
 
-type DataGeneratorApp struct {
+type ClientApp struct {
 }
 
-func (dga *DataGeneratorApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
+func (ca *ClientApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	logger := logwrap.NewLogger(logFile, permission)
 
 	if err := logger.InitLogger(); err != nil {
@@ -36,7 +35,7 @@ func (dga *DataGeneratorApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	return logger, logger.Log
 }
 
-func (dga *DataGeneratorApp) initConfig(mode string) config.Config {
+func (ca *ClientApp) initConfig(mode string) config.Config {
 	if err := config.InitEnv(); err != nil {
 		log.Fatalf("error initializing env: %s", err.Error())
 	}
@@ -48,8 +47,8 @@ func (dga *DataGeneratorApp) initConfig(mode string) config.Config {
 	return config.NewConfig(mode)
 }
 
-func (dga *DataGeneratorApp) Run(mode string) {
-	logger, logApp := dga.initLogger()
+func (ca *ClientApp) Run(mode string) {
+	logger, logApp := ca.initLogger()
 
 	defer func() {
 		if err := logger.File.Close(); err != nil {
@@ -57,13 +56,11 @@ func (dga *DataGeneratorApp) Run(mode string) {
 		}
 	}()
 
-	conf := dga.initConfig(mode)
+	conf := ca.initConfig(mode)
 
-	pub := natspub.NewPublish(conf, logApp)
+	cl := client.NewClient(logApp)
 
-	pub.Run()
-
-	serv := servhttp.NewHttpServer(&conf.ServerConfig, http.NewServeMux())
+	serv := servhttp.NewHttpServer(&conf.ServerConfig, cl.Handler())
 
 	go func() {
 		if err := serv.Start(); err != nil {
@@ -71,7 +68,7 @@ func (dga *DataGeneratorApp) Run(mode string) {
 		}
 	}()
 
-	logApp.Infoln("Service data generator is started")
+	logApp.Infoln("Service client is started")
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)

@@ -20,7 +20,6 @@ import (
 )
 
 type OrdersApp struct {
-	Runner
 }
 
 const (
@@ -127,8 +126,4 @@ func (p *OrdersApp) Run(mode string) {
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 
 	<-quit
-}
-
-type Runner interface {
-	Run(mode string)
 }

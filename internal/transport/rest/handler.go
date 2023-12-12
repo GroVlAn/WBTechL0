@@ -61,4 +61,5 @@ func (hh *HttpHandler) Handler() *chi.Mux {
 
 func (hh *HttpHandler) baseMiddleware(r *chi.Mux) {
 	r.Use(md.SkipFavicon)
+	r.Use(md.Cors)
 }

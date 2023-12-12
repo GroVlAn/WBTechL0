@@ -1,0 +1,7 @@
+FROM scratch
+EXPOSE 8030
+WORKDIR /api/client/
+COPY ./build/client/ ./
+COPY ./configs/ ./configs/
+COPY ./.env ./
+COPY ./web ./web

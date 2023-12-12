@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width"/>
+    <title>Find Orders</title>
+
+    <style>
+        .order_form {
+            display: flex;
+        }
+
+        .order_form__submit {
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="order_form">
+        <div class="order_form__field">
+            <label class="order_form__label" for="search">Введите order uid</label>
+            <input id="search" type="text" class="order_form__input" placeholder="Order uid">
+        </div>
+        <div class="order_form__submit">
+            <button type="button" class="order_form__btn js_search_btn">Найти</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="order_result js_order_result">
+
+    </div>
+</div>
+
+<script>
+    const url = 'http://localhost:8010/api/order/';
+    const searchOrder = document.querySelector('#search');
+    const searchBtn = document.querySelector('.js_search_btn')
+    const result = document.querySelector('.js_order_result')
+    searchBtn.addEventListener('click', ev => {
+        ev.preventDefault();
+
+        console.log(searchOrder.value)
+        if (searchOrder.value.length > 0) {
+            getOrder(url, searchOrder.value)
+        }
+    })
+
+    function getOrder(url, id) {
+        fetch(`${url}${id}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Received data:', data.result);
+                if (data.result) {
+                    result.innerHTML = beautifyJson(data.result).replace(/ /g, '&nbsp;').replace(/\n/g, '<br>')
+                }
+            })
+            .catch(error => {
+                console.error('Error during fetch:', error);
+            })
+    }
+
+    function beautifyJson(obj, indent = 0) {
+        let result = '';
+
+        for (const key in obj) {
+            if (obj.hasOwnProperty(key)) {
+                const value = obj[key];
+                const indentation = ' '.repeat(indent);
+
+                if (typeof value === 'object') {
+                    result += `${indentation}${key}:\n${beautifyJson(value, indent + 2)}`;
+                } else {
+                    result += `${indentation}${key}: ${value}\n`;
+                }
+            }
+        }
+
+        return result;
+    }
+
+</script>
+</body>
+</html>

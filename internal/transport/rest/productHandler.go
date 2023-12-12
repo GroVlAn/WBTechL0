@@ -14,7 +14,7 @@ func (hh *HttpHandler) ProductHandler() *chi.Mux {
 
 	router.Route("/", func(r chi.Router) {
 		r.Get("/{productID}", hh.Product)
-		r.Get("/all/{trackNumber}", hh.All)
+		r.Get("/all/{trackNumber}", hh.AllProduct)
 		r.Post("/", hh.CreateProduct)
 		r.Delete("/{productID}", hh.DeleteProduct)
 	})
@@ -51,7 +51,7 @@ func (hh *HttpHandler) CreateProduct(w http.ResponseWriter, req *http.Request) {
 	response.Resp(w, hh.log, prodResp, nil, http.StatusCreated)
 }
 
-func (hh *HttpHandler) All(w http.ResponseWriter, req *http.Request) {
+func (hh *HttpHandler) AllProduct(w http.ResponseWriter, req *http.Request) {
 	trNum := chi.URLParam(req, "trackNumber")
 
 	prReps, err := hh.prodServ.All(trNum)

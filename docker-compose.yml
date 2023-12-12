@@ -35,6 +35,22 @@ services:
       - orders_db
       - nats_straming
 
+  client:
+    container_name: "wb_client"
+    build:
+      context: ./
+      dockerfile: clientDockerfile
+    command: ./client --prod
+    restart: always
+    ports:
+      - "8030:8030"
+    networks:
+      - postgres
+    depends_on:
+      - orders_db
+      - nats_straming
+
+
   orders_db:
     container_name: "wb_orders_db"
     restart: always

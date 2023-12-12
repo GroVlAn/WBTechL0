@@ -257,3 +257,60 @@ func (ors *OrderServ) DeleteOrder(ordUid string) (string, error) {
 
 	return delOrdUid, nil
 }
+
+func (ors *OrderServ) All() ([]OrderRepr, error) {
+	ords, err := ors.ordRepo.All()
+
+	if err != nil {
+		ors.log.Errorf("service order: can no find orders: %s", err.Error())
+		return nil, err
+	}
+
+	ordsReprs := make([]OrderRepr, 0)
+
+	for _, item := range ords {
+		pmt, errPmt := ors.pmtRepo.Payment(item.PaymentTransaction)
+
+		if errPmt != nil {
+			continue
+		}
+
+		d, errD := ors.dRepos.Delivery(item.DeliveryId)
+
+		if errD != nil {
+			continue
+		}
+
+		prods, errProds := ors.prodRepo.FindByTrackNumber(item.TrackNumber)
+
+		if errProds != nil {
+			continue
+		}
+
+		prodsReprs := make([]ProductRepr, 0)
+
+		for _, prod := range prods {
+			prodsReprs = append(prodsReprs, ProductRepr(prod))
+		}
+
+		ordRepr := OrderRepr{
+			OrderUid:          item.OrderUid,
+			TrackNumber:       item.TrackNumber,
+			Entry:             item.Entry,
+			Delivery:          DeliveryRepr(d),
+			Payment:           PaymentRepr(pmt),
+			Items:             prodsReprs,
+			Locale:            item.Locale,
+			InternalSignature: item.InternalSignature,
+			CustomerId:        item.CustomerId,
+			DeliveryService:   item.DeliveryService,
+			Shardkey:          item.Shardkey,
+			SmId:              item.SmId,
+			OofShard:          item.OofShard,
+			DateCreated:       item.DateCreated.Format(dateCreatedFormat),
+		}
+		ordsReprs = append(ordsReprs, ordRepr)
+	}
+
+	return ordsReprs, nil
+}

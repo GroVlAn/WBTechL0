@@ -8,6 +8,10 @@ g-build-producer:
 g-build-subscriber:
 	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/dataGenerator ./cmd/dataGenerator/main.go;
 
+#Build client application
+g-build-client:
+	CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o ./build/client ./cmd/client/main.go;
+
 #Docker compose build
 compose-build:
 	docker-compose build
@@ -17,4 +21,4 @@ compose-run:
 	docker-compose --env-file ./.env  up -d
 
 #Run applications
-run: g-build-producer g-build-subscriber compose-build compose-run
+run: g-build-producer g-build-subscriber g-build-client compose-build compose-run

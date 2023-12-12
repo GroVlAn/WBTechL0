@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width"/>
+    <title>Orders</title>
+
+    <style>
+        .order_id {
+            margin-bottom: 15px;
+
+        }
+    </style>
+</head>
+<body>
+
+<script>
+    const url = 'http://localhost:8010/api/order/';
+
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Received data:', data.result.ids);
+            if (data.result.ids) {
+                data.result.ids.forEach(id => {
+                    const idBlock = document.createElement("div")
+                    idBlock.classList.add('order_id')
+                    idBlock.textContent = `id: ${id}`
+                    document.body.append(idBlock)
+
+                })
+            }
+        })
+        .catch(error => {
+            console.error('Error during fetch:', error);
+        })
+</script>
+</body>
+</html>
