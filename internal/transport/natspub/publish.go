@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/config"
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/GroVlAn/WBTechL0/internal/service"
 	"github.com/go-faker/faker/v4"
 	"github.com/nats-io/stan.go"
@@ -15,7 +16,7 @@ import (
 const (
 	ChannelOrd   = "order"
 	ChannelProd  = "product"
-	DelayPublish = 1 * time.Minute
+	DelayPublish = 30 * time.Second
 )
 
 type Publish struct {
@@ -46,15 +47,15 @@ func NewPublish(conf config.Config, log *logrus.Logger) *Publish {
 func (p *Publish) Run() {
 	go func() {
 		for {
-			p.PublishProduct()
 			time.Sleep(DelayPublish)
+			p.PublishProduct()
 		}
 	}()
 
 	go func() {
 		for {
-			p.PublishOrder()
 			time.Sleep(DelayPublish)
+			p.PublishOrder()
 		}
 	}()
 }
@@ -94,7 +95,7 @@ func (p *Publish) PublishOrder() {
 }
 
 func (p *Publish) PublishProduct() {
-	var prodFake service.ProductRepr
+	var prodFake core.ProductRepr
 
 	err := faker.FakeData(&prodFake)
 

@@ -26,6 +26,7 @@ const (
 type DataGeneratorApp struct {
 }
 
+// initLogger init custom logger
 func (dga *DataGeneratorApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	logger := logwrap.NewLogger(logFile, permission)
 
@@ -36,6 +37,7 @@ func (dga *DataGeneratorApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	return logger, logger.Log
 }
 
+// initConfig method for initializing app's config
 func (dga *DataGeneratorApp) initConfig(mode string) config.Config {
 	if err := config.InitEnv(); err != nil {
 		log.Fatalf("error initializing env: %s", err.Error())

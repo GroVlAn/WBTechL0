@@ -16,7 +16,7 @@ const (
 var ExampleOrderReq = OrderReq{
 	TrackNumber: "WBILMTESTTRACK",
 	Entry:       "WBIL",
-	Delivery: DeliveryRepr{
+	Delivery: core.DeliveryRepr{
 		Name:    "Test Testov",
 		Phone:   "+9720000000",
 		Zip:     "2639809",
@@ -25,7 +25,7 @@ var ExampleOrderReq = OrderReq{
 		Region:  "Kraiot",
 		Email:   "test@gmail.com",
 	},
-	Payment: PaymentRepr{
+	Payment: core.PaymentRepr{
 		RequestId:    "",
 		Currency:     "USD",
 		Provider:     "wbpay",
@@ -45,37 +45,19 @@ var ExampleOrderReq = OrderReq{
 	OffShard:          "1",
 }
 
-type OrderRepr struct {
-	Id                int64         `json:"-"`
-	OrderUid          string        `json:"order_uid"`
-	TrackNumber       string        `json:"track_number"`
-	Entry             string        `json:"entry"`
-	Delivery          DeliveryRepr  `json:"delivery"`
-	Payment           PaymentRepr   `json:"payment"`
-	Items             []ProductRepr `json:"items"`
-	Locale            string        `json:"locale"`
-	InternalSignature string        `json:"internal_signature"`
-	CustomerId        string        `json:"customer_id"`
-	DeliveryService   string        `json:"delivery_service"`
-	Shardkey          string        `json:"shardkey"`
-	SmId              int64         `json:"sm_id"`
-	OofShard          string        `json:"off_shard"`
-	DateCreated       string        `json:"date_created"`
-}
-
 type OrderReq struct {
-	Id                int          `json:"-" valid:"-"`
-	TrackNumber       string       `json:"track_number" valid:"type(string), required"`
-	Entry             string       `json:"entry" valid:"type(string), required"`
-	Delivery          DeliveryRepr `json:"delivery" valid:"-"`
-	Payment           PaymentRepr  `json:"payment" valid:"-"`
-	Locale            string       `json:"locale" valid:"type(string), required"`
-	InternalSignature string       `json:"internal_signature" valid:"type(string)"`
-	CustomerId        string       `json:"customer_id" valid:"type(string), required"`
-	DeliveryService   string       `json:"delivery_service" valid:"type(string), required"`
-	Shardkey          string       `json:"shardkey" valid:"type(string), required"`
-	SmId              int64        `json:"sm_id" valid:"int, required"`
-	OffShard          string       `json:"off_shard" valid:"type(string), required"`
+	Id                int               `json:"-" valid:"-"`
+	TrackNumber       string            `json:"track_number" valid:"type(string), required"`
+	Entry             string            `json:"entry" valid:"type(string), required"`
+	Delivery          core.DeliveryRepr `json:"delivery" valid:"-"`
+	Payment           core.PaymentRepr  `json:"payment" valid:"-"`
+	Locale            string            `json:"locale" valid:"type(string), required"`
+	InternalSignature string            `json:"internal_signature" valid:"type(string)"`
+	CustomerId        string            `json:"customer_id" valid:"type(string), required"`
+	DeliveryService   string            `json:"delivery_service" valid:"type(string), required"`
+	Shardkey          string            `json:"shardkey" valid:"type(string), required"`
+	SmId              int64             `json:"sm_id" valid:"int, required"`
+	OffShard          string            `json:"off_shard" valid:"type(string), required"`
 }
 
 type OrderServ struct {
@@ -147,20 +129,20 @@ func (ors *OrderServ) CreateOrder(ordReq OrderReq) (string, error) {
 
 	prods, _ := ors.prodRepo.All()
 
-	prodsReprs := make([]ProductRepr, 0)
+	prodsReprs := make([]core.ProductRepr, 0)
 
 	for _, item := range prods {
 		if item.TrackNumber == ord.TrackNumber {
-			prodsReprs = append(prodsReprs, ProductRepr(item))
+			prodsReprs = append(prodsReprs, core.ProductRepr(item))
 		}
 	}
 
-	ordRepr := OrderRepr{
+	ordRepr := core.OrderRepr{
 		OrderUid:          ord.OrderUid,
 		TrackNumber:       ord.TrackNumber,
 		Entry:             ord.Entry,
-		Delivery:          DeliveryRepr(d),
-		Payment:           PaymentRepr(pmt),
+		Delivery:          core.DeliveryRepr(d),
+		Payment:           core.PaymentRepr(pmt),
 		Items:             prodsReprs,
 		Locale:            ord.Locale,
 		InternalSignature: ord.InternalSignature,
@@ -179,7 +161,7 @@ func (ors *OrderServ) CreateOrder(ordReq OrderReq) (string, error) {
 	return ordUid, nil
 }
 
-func (ors *OrderServ) Order(ordUid string) (OrderRepr, error) {
+func (ors *OrderServ) Order(ordUid string) (core.OrderRepr, error) {
 	ordCh, err := ors.ch.Order(ordUid)
 
 	if err == nil {
@@ -191,42 +173,42 @@ func (ors *OrderServ) Order(ordUid string) (OrderRepr, error) {
 
 	if errOrd != nil {
 		ors.log.Errorf("service order: find order error:: %s", errOrd.Error())
-		return OrderRepr{}, errOrd
+		return core.OrderRepr{}, errOrd
 	}
 
 	d, errD := ors.dRepos.Delivery(ord.DeliveryId)
 
 	if errD != nil {
 		ors.log.Errorf("service order: find delivery error: %s", errD.Error())
-		return OrderRepr{}, errD
+		return core.OrderRepr{}, errD
 	}
 
 	pmt, errPmt := ors.pmtRepo.Payment(ord.OrderUid)
 
 	if errPmt != nil {
 		ors.log.Errorf("service order: find payment error: %s", errPmt.Error())
-		return OrderRepr{}, errPmt
+		return core.OrderRepr{}, errPmt
 	}
 
 	prods, errProds := ors.prodRepo.FindByTrackNumber(ord.TrackNumber)
 
 	if errProds != nil {
 		ors.log.Errorf("service order: find products error: %s", errProds.Error())
-		return OrderRepr{}, errProds
+		return core.OrderRepr{}, errProds
 	}
 
-	prodsReprs := make([]ProductRepr, 0, len(prods))
+	prodsReprs := make([]core.ProductRepr, 0, len(prods))
 
 	for _, prod := range prods {
-		prodsReprs = append(prodsReprs, ProductRepr(prod))
+		prodsReprs = append(prodsReprs, core.ProductRepr(prod))
 	}
 
-	ordRepr := OrderRepr{
+	ordRepr := core.OrderRepr{
 		OrderUid:          ord.OrderUid,
 		TrackNumber:       ord.TrackNumber,
 		Entry:             ord.Entry,
-		Delivery:          DeliveryRepr(d),
-		Payment:           PaymentRepr(pmt),
+		Delivery:          core.DeliveryRepr(d),
+		Payment:           core.PaymentRepr(pmt),
 		Items:             prodsReprs,
 		Locale:            ord.Locale,
 		InternalSignature: ord.InternalSignature,
@@ -258,7 +240,7 @@ func (ors *OrderServ) DeleteOrder(ordUid string) (string, error) {
 	return delOrdUid, nil
 }
 
-func (ors *OrderServ) All() ([]OrderRepr, error) {
+func (ors *OrderServ) All() ([]core.OrderRepr, error) {
 	ords, err := ors.ordRepo.All()
 
 	if err != nil {
@@ -266,7 +248,7 @@ func (ors *OrderServ) All() ([]OrderRepr, error) {
 		return nil, err
 	}
 
-	ordsReprs := make([]OrderRepr, 0)
+	ordsReprs := make([]core.OrderRepr, 0)
 
 	for _, item := range ords {
 		pmt, errPmt := ors.pmtRepo.Payment(item.PaymentTransaction)
@@ -287,18 +269,18 @@ func (ors *OrderServ) All() ([]OrderRepr, error) {
 			continue
 		}
 
-		prodsReprs := make([]ProductRepr, 0)
+		prodsReprs := make([]core.ProductRepr, 0)
 
 		for _, prod := range prods {
-			prodsReprs = append(prodsReprs, ProductRepr(prod))
+			prodsReprs = append(prodsReprs, core.ProductRepr(prod))
 		}
 
-		ordRepr := OrderRepr{
+		ordRepr := core.OrderRepr{
 			OrderUid:          item.OrderUid,
 			TrackNumber:       item.TrackNumber,
 			Entry:             item.Entry,
-			Delivery:          DeliveryRepr(d),
-			Payment:           PaymentRepr(pmt),
+			Delivery:          core.DeliveryRepr(d),
+			Payment:           core.PaymentRepr(pmt),
 			Items:             prodsReprs,
 			Locale:            item.Locale,
 			InternalSignature: item.InternalSignature,

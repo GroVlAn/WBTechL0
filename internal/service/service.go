@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/sirupsen/logrus"
 )
@@ -29,40 +30,40 @@ func NewService(
 }
 
 type ProductService interface {
-	CreateProduct(prodRpr ProductRepr) (int64, error)
-	Product(id int64) (ProductRepr, error)
-	All(trNum string) ([]ProductRepr, error)
+	CreateProduct(prodRpr core.ProductRepr) (int64, error)
+	Product(id int64) (core.ProductRepr, error)
+	All(trNum string) ([]core.ProductRepr, error)
 	DeleteProduct(id int64) (int64, error)
 }
 
 type PaymentService interface {
-	Payment(tran string) (PaymentRepr, error)
+	Payment(tran string) (core.PaymentRepr, error)
 	DeletePayment(tran string) (string, error)
 }
 
 type DeliveryService interface {
-	Delivery(id int64) (DeliveryRepr, error)
+	Delivery(id int64) (core.DeliveryRepr, error)
 	DeleteDelivery(id int64) (int64, error)
 }
 
 type OrderService interface {
 	CreateOrder(ordReq OrderReq) (string, error)
-	Order(ordUid string) (OrderRepr, error)
+	Order(ordUid string) (core.OrderRepr, error)
 	DeleteOrder(ordUid string) (string, error)
-	All() ([]OrderRepr, error)
+	All() ([]core.OrderRepr, error)
 }
 
 type Cacher interface {
-	SetDelivery(id int64, dRepr DeliveryRepr)
-	Delivery(id int64) (DeliveryRepr, error)
+	SetDelivery(id int64, dRepr core.DeliveryRepr)
+	Delivery(id int64) (core.DeliveryRepr, error)
 	DeleteDelivery(id int64)
-	SetOrder(ordUid string, ordRepr OrderRepr)
-	Order(ordUid string) (OrderRepr, error)
+	SetOrder(ordUid string, ordRepr core.OrderRepr)
+	Order(ordUid string) (core.OrderRepr, error)
 	DeleteOrder(ordUid string)
-	SetPayment(tran string, pmtRepr PaymentRepr)
-	Payment(tran string) (PaymentRepr, error)
+	SetPayment(tran string, pmtRepr core.PaymentRepr)
+	Payment(tran string) (core.PaymentRepr, error)
 	DeletePayment(tran string)
-	SetProduct(id int64, prodRepr ProductRepr)
-	Product(id int64) (ProductRepr, error)
+	SetProduct(id int64, prodRepr core.ProductRepr)
+	Product(id int64) (core.ProductRepr, error)
 	DeleteProduct(id int64)
 }

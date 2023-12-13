@@ -1,20 +1,10 @@
 package service
 
 import (
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/sirupsen/logrus"
 )
-
-type DeliveryRepr struct {
-	Id      int64  `json:"-" valid:"-"`
-	Name    string `json:"name" valid:"type(string), required"`
-	Phone   string `json:"phone" valid:"type(string), required"`
-	Zip     string `json:"zip" valid:"type(string), required"`
-	City    string `json:"city" valid:"type(string), required"`
-	Address string `json:"address" valid:"type(string), required"`
-	Region  string `json:"region" valid:"type(string), required"`
-	Email   string `json:"email" valid:"email, required"`
-}
 
 type DeliveryServ struct {
 	log   *logrus.Logger
@@ -30,7 +20,7 @@ func NewDeliveryServ(log *logrus.Logger, ch Cacher, repos prepos.DeliveryReposit
 	}
 }
 
-func (ds *DeliveryServ) Delivery(id int64) (DeliveryRepr, error) {
+func (ds *DeliveryServ) Delivery(id int64) (core.DeliveryRepr, error) {
 	dCh, err := ds.ch.Delivery(id)
 
 	if err == nil {
@@ -41,7 +31,7 @@ func (ds *DeliveryServ) Delivery(id int64) (DeliveryRepr, error) {
 	d, err := ds.repos.Delivery(id)
 	ds.log.Infof("service try to find delivery by id: %d", id)
 
-	return DeliveryRepr(d), err
+	return core.DeliveryRepr(d), err
 }
 
 func (ds *DeliveryServ) DeleteDelivery(id int64) (int64, error) {

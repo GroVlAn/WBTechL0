@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-var ExampleProdReq = ProductRepr{
+var ExampleProdReq = core.ProductRepr{
 	TrackNumber: "WBILMTESTTRACK",
 	Price:       453,
 	Rid:         "ab4219087a764ae0btest",
@@ -19,20 +19,6 @@ var ExampleProdReq = ProductRepr{
 	NmId:        2389212,
 	Brand:       "Vivienne Sabo",
 	Status:      202,
-}
-
-type ProductRepr struct {
-	Id          int64  `json:"chrt_id" valid:"int, required"`
-	TrackNumber string `json:"track_number" valid:"type(string), required"`
-	Price       int64  `json:"price" valid:"int, required"`
-	Rid         string `json:"rid" valid:"type(string), required"`
-	Name        string `json:"name" valid:"type(string), required"`
-	Sale        int64  `json:"sale" valid:"int, required"`
-	Size        string `json:"size" valid:"type(string), required"`
-	TotalPrice  int64  `json:"total_price" valid:"int, required"`
-	NmId        int64  `json:"nm_id" valid:"int, required"`
-	Brand       string `json:"brand" valid:"type(string), required"`
-	Status      int32  `json:"status" valid:"int, required"`
 }
 
 type ProductServ struct {
@@ -49,7 +35,7 @@ func NewProductServ(log *logrus.Logger, ch Cacher, repos prepos.ProductRepositor
 	}
 }
 
-func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int64, error) {
+func (pr *ProductServ) CreateProduct(prodRpr core.ProductRepr) (int64, error) {
 	result, err := govalidator.ValidateStruct(prodRpr)
 
 	if err != nil {
@@ -77,8 +63,8 @@ func (pr *ProductServ) CreateProduct(prodRpr ProductRepr) (int64, error) {
 	return id, nil
 }
 
-func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
-	prodsReps := make([]ProductRepr, 0)
+func (pr *ProductServ) All(trNum string) ([]core.ProductRepr, error) {
+	prodsReps := make([]core.ProductRepr, 0)
 
 	prods, err := pr.repos.FindByTrackNumber(trNum)
 
@@ -88,7 +74,7 @@ func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
 	}
 
 	for _, prod := range prods {
-		prodsReps = append(prodsReps, ProductRepr(prod))
+		prodsReps = append(prodsReps, core.ProductRepr(prod))
 	}
 
 	pr.log.Info("service product find all")
@@ -96,7 +82,7 @@ func (pr *ProductServ) All(trNum string) ([]ProductRepr, error) {
 	return prodsReps, nil
 }
 
-func (pr *ProductServ) Product(id int64) (ProductRepr, error) {
+func (pr *ProductServ) Product(id int64) (core.ProductRepr, error) {
 	prodCh, err := pr.ch.Product(id)
 
 	if err == nil {
@@ -108,7 +94,7 @@ func (pr *ProductServ) Product(id int64) (ProductRepr, error) {
 
 	pr.log.Infof("service product find by id: %d", id)
 
-	return ProductRepr(prod), err
+	return core.ProductRepr(prod), err
 }
 
 func (pr *ProductServ) DeleteProduct(id int64) (int64, error) {

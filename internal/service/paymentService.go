@@ -1,23 +1,10 @@
 package service
 
 import (
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	prepos "github.com/GroVlAn/WBTechL0/internal/repository/postgresrepos"
 	"github.com/sirupsen/logrus"
 )
-
-type PaymentRepr struct {
-	Id           int64  `json:"-" db:"id"`
-	Transaction  string `json:"transaction" valid:"-"`
-	RequestId    string `json:"request_id" valid:"type(string)"`
-	Currency     string `json:"currency" valid:"type(string), required"`
-	Provider     string `json:"provider" valid:"type(string), required"`
-	Amount       int64  `json:"amount" valid:"int, required"`
-	PaymentDt    int64  `json:"payment_dt" valid:"int, required"`
-	Bank         string `json:"bank" valid:"type(string), required"`
-	DeliveryCost int64  `json:"delivery_cost" valid:"int, required"`
-	GoodsTotal   int64  `json:"goods_total" valid:"int, required"`
-	CustomFee    int64  `json:"custom_fee" valid:"int"`
-}
 
 type PaymentServ struct {
 	log   *logrus.Logger
@@ -33,7 +20,7 @@ func NewPaymentServ(log *logrus.Logger, ch Cacher, repos prepos.PaymentRepositor
 	}
 }
 
-func (ps *PaymentServ) Payment(tran string) (PaymentRepr, error) {
+func (ps *PaymentServ) Payment(tran string) (core.PaymentRepr, error) {
 	pmtCh, err := ps.ch.Payment(tran)
 
 	if err == nil {
@@ -45,7 +32,7 @@ func (ps *PaymentServ) Payment(tran string) (PaymentRepr, error) {
 
 	ps.log.Infof("service payment try to find by transactoion: %s", tran)
 
-	return PaymentRepr(pmt), err
+	return core.PaymentRepr(pmt), err
 }
 
 func (ps *PaymentServ) DeletePayment(tran string) (string, error) {

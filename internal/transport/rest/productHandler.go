@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/GroVlAn/WBTechL0/internal/service"
 	response "github.com/GroVlAn/WBTechL0/internal/tools/resp"
 	"github.com/go-chi/chi/v5"
@@ -23,7 +24,7 @@ func (hh *HttpHandler) ProductHandler() *chi.Mux {
 }
 
 func (hh *HttpHandler) CreateProduct(w http.ResponseWriter, req *http.Request) {
-	var prodRepr service.ProductRepr
+	var prodRepr core.ProductRepr
 	err := json.NewDecoder(req.Body).Decode(&prodRepr)
 
 	if err != nil {

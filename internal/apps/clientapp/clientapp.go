@@ -25,6 +25,7 @@ const (
 type ClientApp struct {
 }
 
+// initLogger init custom logger
 func (ca *ClientApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	logger := logwrap.NewLogger(logFile, permission)
 
@@ -35,6 +36,7 @@ func (ca *ClientApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	return logger, logger.Log
 }
 
+// initConfig method for initializing app's config
 func (ca *ClientApp) initConfig(mode string) config.Config {
 	if err := config.InitEnv(); err != nil {
 		log.Fatalf("error initializing env: %s", err.Error())

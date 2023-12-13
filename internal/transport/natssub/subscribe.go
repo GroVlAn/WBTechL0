@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/GroVlAn/WBTechL0/internal/config"
+	"github.com/GroVlAn/WBTechL0/internal/core"
 	"github.com/GroVlAn/WBTechL0/internal/service"
 	"github.com/nats-io/stan.go"
 	"github.com/sirupsen/logrus"
@@ -63,7 +64,7 @@ func (s *Subscribe) Run() {
 
 func (s *Subscribe) SubProduct() {
 	_, err := s.Sc.QueueSubscribe(ChannelProd, "product", func(m *stan.Msg) {
-		var prodRepr service.ProductRepr
+		var prodRepr core.ProductRepr
 		errUnm := json.Unmarshal(m.Data, &prodRepr)
 
 		if errUnm != nil {
@@ -77,7 +78,7 @@ func (s *Subscribe) SubProduct() {
 				s.log.Infof("product by id %d is created", id)
 			}
 		}
-	}, stan.DurableName("sub-prod"))
+	})
 
 	if err != nil {
 		s.log.Errorf("can not subscibe product channel: %s", err.Error())
@@ -101,7 +102,7 @@ func (s *Subscribe) SubOrder() {
 				s.log.Infof("order by id %s is created", id)
 			}
 		}
-	}, stan.DurableName("sub-ord"))
+	}, stan.DurableName("order"))
 
 	if err != nil {
 		s.log.Errorf("can not subscibe order channel: %s", err.Error())

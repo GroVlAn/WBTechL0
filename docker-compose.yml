@@ -18,6 +18,8 @@ services:
         condition: service_healthy
       nats_straming:
         condition: service_started
+      migrate:
+        condition: service_started
 
   data_generator:
     container_name: "wb_service_data_generator"
@@ -32,8 +34,12 @@ services:
       - postgres
       - nats
     depends_on:
-      - orders_db
-      - nats_straming
+      nats_straming:
+          condition: service_started
+      orders_db:
+        condition: service_healthy
+      migrate:
+        condition: service_started
 
   client:
     container_name: "wb_client"

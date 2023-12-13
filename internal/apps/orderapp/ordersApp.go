@@ -32,6 +32,7 @@ const (
 	permission = 0644
 )
 
+// initLogger init custom logger
 func (p *OrdersApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	logger := logwrap.NewLogger(logFile, permission)
 
@@ -42,6 +43,7 @@ func (p *OrdersApp) initLogger() (*logwrap.Logger, *logrus.Logger) {
 	return logger, logger.Log
 }
 
+// initConfig method for initializing app's config
 func (p *OrdersApp) initConfig(mode string) config.Config {
 	if err := config.InitEnv(); err != nil {
 		log.Fatalf("error initializing env: %s", err.Error())

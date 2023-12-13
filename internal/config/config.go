@@ -36,7 +36,7 @@ const (
 	maxHeaderBytes    = 1 << 20
 	readHeaderTimeout = 10 * time.Second
 	writeTimeout      = 10 * time.Second
-	natsConnectWait   = 5 * time.Minute
+	natsConnectWait   = 5 * time.Second
 )
 
 func NewConfig(mode string) Config {
